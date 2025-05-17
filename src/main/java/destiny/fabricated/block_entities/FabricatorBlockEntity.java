@@ -33,17 +33,25 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
     }
 
     public void open(Level level, BlockPos pos, FabricatorBlockEntity fabricator) {
-        fabricator.triggerAnim("fabricator", "open");
+        fabricator.stopTriggeredAnimation("fabricator", null);
+        fabricator.triggerAnim("fabricator", "open_then_idle");
         level.playSound(null, pos, SoundInit.FABRICATOR_OPEN.get(), SoundSource.BLOCKS);
     }
 
     public void close(Level level, BlockPos pos, FabricatorBlockEntity fabricator) {
+        fabricator.stopTriggeredAnimation("fabricator", null);
         fabricator.triggerAnim("fabricator", "close");
         level.playSound(null, pos, SoundInit.FABRICATOR_CLOSE.get(), SoundSource.BLOCKS);
     }
 
+    public void fabricate(Level level, BlockPos pos, FabricatorBlockEntity fabricator) {
+        fabricator.stopTriggeredAnimation("fabricator", null);
+        fabricator.triggerAnim("fabricator", "fabricate_then_idle");
+        level.playSound(null, pos, SoundInit.FABRICATOR_FABRICATE.get(), SoundSource.BLOCKS);
+    }
+
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "fabricator", 10, state -> PlayState.STOP)
+        controllers.add(new AnimationController<>(this, "fabricator", 0, state -> PlayState.STOP)
                 .triggerableAnim("open", OPEN)
                 .triggerableAnim("open_then_idle", OPEN_THEN_IDLE)
                 .triggerableAnim("open_idle", OPEN_IDLE)

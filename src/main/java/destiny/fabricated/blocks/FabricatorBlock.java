@@ -8,6 +8,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -33,16 +34,16 @@ public class FabricatorBlock extends BaseEntityBlock implements SimpleWaterlogge
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
 
     public static final VoxelShape SHAPE_NORTH = MathUtil.buildShape(
-            Block.box(6, 4, 11, 10, 10, 16)
+            Block.box(1, -1, 13, 15, 17, 16)
     );
     public static final VoxelShape SHAPE_SOUTH = MathUtil.buildShape(
-            Block.box(6, 4, 0, 10, 10, 5)
+            Block.box(1, -1, 0, 15, 17, 3)
     );
     public static final VoxelShape SHAPE_WEST = MathUtil.buildShape(
-            Block.box(11, 4, 6, 16, 10, 10)
+            Block.box(13, -1, 1, 16, 17, 15)
     );
     public static final VoxelShape SHAPE_EAST = MathUtil.buildShape(
-            Block.box(0, 4, 6, 5, 10, 10)
+            Block.box(0, -1, 1, 3, 17, 15)
     );
 
     public FabricatorBlock(Properties pProperties) {
@@ -53,7 +54,9 @@ public class FabricatorBlock extends BaseEntityBlock implements SimpleWaterlogge
     @Override
     public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
         if (pLevel.getBlockEntity(pPos) instanceof FabricatorBlockEntity fabricator) {
-            if (pPlayer.isCrouching()) {
+            if (pPlayer.getMainHandItem().getItem() == Items.STICK) {
+                fabricator.fabricate(pLevel, pPos, fabricator);
+            } else if (pPlayer.isCrouching()) {
                 fabricator.close(pLevel, pPos, fabricator);
             } else {
                 fabricator.open(pLevel, pPos, fabricator);
