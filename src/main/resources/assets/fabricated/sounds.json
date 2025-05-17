@@ -19,5 +19,11 @@
     [
       "fabricated:fabricator_close"
     ]
+  },
+  "fabricator_button": {
+    "sounds":
+    [
+      "fabricated:fabricator_button"
+    ]
   }
 }

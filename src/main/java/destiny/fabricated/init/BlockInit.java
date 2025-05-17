@@ -20,7 +20,7 @@ public class BlockInit
 {
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, FabricatedMod.MODID);
 
-    public static final RegistryObject<Block> FABRICATOR = registerBlock("fabricator", () -> new FabricatorBlock(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_LIGHT_GRAY).strength(2.0F).sound(SoundType.METAL).requiresCorrectToolForDrops().noOcclusion().lightLevel((state) -> 5).pushReaction(PushReaction.IGNORE)));
+    public static final RegistryObject<Block> FABRICATOR = BLOCKS.register("fabricator", () -> new FabricatorBlock(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_LIGHT_GRAY).strength(2.0F).sound(SoundType.METAL).requiresCorrectToolForDrops().noOcclusion().lightLevel((state) -> 5).pushReaction(PushReaction.IGNORE)));
 
     private static <T extends Block> RegistryObject<T> registerBlock(String name, Supplier<T> block)
     {

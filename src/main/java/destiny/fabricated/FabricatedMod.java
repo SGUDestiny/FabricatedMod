@@ -63,21 +63,4 @@ public class FabricatedMod
     {
 
     }
-
-    @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
-    public static class ClientModEvents
-    {
-        @SubscribeEvent
-        public static void onClientSetup(FMLClientSetupEvent event)
-        {
-
-        }
-
-        @SubscribeEvent
-        public static void creativeTabs(BuildCreativeModeTabContentsEvent event)
-        {
-            if(event.getTabKey().equals(CreativeModeTabs.FUNCTIONAL_BLOCKS))
-                event.accept(BlockInit.FABRICATOR.get());
-        }
-    }
 }
