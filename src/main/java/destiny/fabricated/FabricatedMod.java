@@ -72,5 +72,12 @@ public class FabricatedMod
         {
 
         }
+
+        @SubscribeEvent
+        public static void creativeTabs(BuildCreativeModeTabContentsEvent event)
+        {
+            if(event.getTabKey().equals(CreativeModeTabs.FUNCTIONAL_BLOCKS))
+                event.accept(BlockInit.FABRICATOR.get());
+        }
     }
 }
