@@ -8,4 +8,6 @@ public class FabricatorBlockRenderer extends GeoBlockRenderer<FabricatorBlockEnt
     public FabricatorBlockRenderer() {
         super(new FabricatorModel());
     }
+
+
 }

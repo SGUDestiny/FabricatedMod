@@ -23,5 +23,8 @@ public class ClientEvents {
     {
         if(event.getTabKey().equals(CreativeModeTabs.FUNCTIONAL_BLOCKS))
             event.accept(ItemInit.FABRICATOR.get());
+
+        if(event.getTabKey().equals(CreativeModeTabs.TOOLS_AND_UTILITIES))
+            event.accept(ItemInit.FABRICATOR_CHIP.get());
     }
 }

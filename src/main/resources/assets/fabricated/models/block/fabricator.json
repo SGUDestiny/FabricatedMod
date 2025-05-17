@@ -5,6 +5,9 @@
     128,
     128
   ],
+  "textures": {
+    "particle": "fabricated:item/fabricator_item"
+  },
   "display": {
     "thirdperson_righthand": {
       "rotation": [
