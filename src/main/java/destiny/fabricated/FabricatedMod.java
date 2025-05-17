@@ -1,9 +1,7 @@
 package destiny.fabricated;
 
 import com.mojang.logging.LogUtils;
-import destiny.fabricated.init.BlockInit;
-import destiny.fabricated.init.ItemInit;
-import destiny.fabricated.init.ItemTabInit;
+import destiny.fabricated.init.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.food.FoodProperties;
@@ -47,6 +45,8 @@ public class FabricatedMod
         ItemInit.register(modEventBus);
         BlockInit.register(modEventBus);
         ItemTabInit.register(modEventBus);
+        BlockEntityInit.register(modEventBus);
+        SoundInit.register(modEventBus);
 
         modEventBus.addListener(this::commonSetup);
         MinecraftForge.EVENT_BUS.register(this);

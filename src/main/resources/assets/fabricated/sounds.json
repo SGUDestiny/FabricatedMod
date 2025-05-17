@@ -1,0 +1,23 @@
+{
+  "fabricator_open": {
+    "subtitle": "sound.fabricated.fabricator_open",
+    "sounds":
+    [
+      "fabricated:fabricator_open"
+    ]
+  },
+  "fabricator_fabricate": {
+    "subtitle": "sound.fabricated.fabricator_fabricate",
+    "sounds":
+    [
+      "fabricated:fabricator_fabricate"
+    ]
+  },
+  "fabricator_close": {
+    "subtitle": "sound.fabricated.fabricator_close",
+    "sounds":
+    [
+      "fabricated:fabricator_close"
+    ]
+  }
+}
