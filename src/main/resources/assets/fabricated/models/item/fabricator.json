@@ -1,3 +1,55 @@
 {
-  "parent": "fabricated:block/fabricator"
+	"credit": "Made with Blockbench",
+	"parent": "minecraft:block/block",
+	"texture_size": [34, 21],
+	"textures": {
+		"0": "fabricated:item/fabricator_item",
+		"particle": "fabricated:item/fabricator_item"
+	},
+	"elements": [
+		{
+			"from": [1, -1, 6.5],
+			"to": [15, 17, 9.5],
+			"rotation": {"angle": 0, "axis": "y", "origin": [1, 0, 7]},
+			"faces": {
+				"north": {"uv": [1.41176, 2.28571, 8, 16], "texture": "#0"},
+				"east": {"uv": [0, 2.28571, 1.41176, 16], "texture": "#0"},
+				"south": {"uv": [9.41176, 2.28571, 16, 16], "texture": "#0"},
+				"west": {"uv": [8, 2.28571, 9.41176, 16], "texture": "#0"},
+				"up": {"uv": [8, 2.28571, 1.41176, 0], "texture": "#0"},
+				"down": {"uv": [14.58824, 0, 8, 2.28571], "texture": "#0"}
+			}
+		}
+	],
+	"display": {
+		"thirdperson_righthand": {
+			"rotation": [75, 45, 0],
+			"translation": [0, 1, 0],
+			"scale": [0.375, 0.375, 0.375]
+		},
+		"thirdperson_lefthand": {
+			"rotation": [75, 45, 0],
+			"translation": [0, 1, 0],
+			"scale": [0.375, 0.375, 0.375]
+		},
+		"firstperson_righthand": {
+			"rotation": [-180, 50, -180],
+			"scale": [0.4, 0.4, 0.4]
+		},
+		"firstperson_lefthand": {
+			"rotation": [-180, 50, -180],
+			"scale": [0.4, 0.4, 0.4]
+		},
+		"ground": {
+			"translation": [0, 3, 0],
+			"scale": [0.25, 0.25, 0.25]
+		},
+		"gui": {
+			"rotation": [30, 225, 0],
+			"scale": [0.625, 0.625, 0.625]
+		},
+		"fixed": {
+			"scale": [0.5, 0.5, 0.5]
+		}
+	}
 }
