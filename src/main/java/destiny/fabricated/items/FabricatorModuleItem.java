@@ -2,8 +2,8 @@ package destiny.fabricated.items;
 
 import net.minecraft.world.item.Item;
 
-public class FabricatorChipItem extends Item {
-    public FabricatorChipItem(Properties pProperties) {
+public class FabricatorModuleItem extends Item {
+    public FabricatorModuleItem(Properties pProperties) {
         super(pProperties);
     }
 }

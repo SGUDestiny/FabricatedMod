@@ -25,6 +25,6 @@ public class ClientEvents {
             event.accept(ItemInit.FABRICATOR.get());
 
         if(event.getTabKey().equals(CreativeModeTabs.TOOLS_AND_UTILITIES))
-            event.accept(ItemInit.FABRICATOR_CHIP.get());
+            event.accept(ItemInit.FABRICATOR_MODULE.get());
     }
 }

@@ -1,7 +1,7 @@
 {
   "block.fabricated.fabricator": "Fabricator",
 
-  "item.fabricated.fabricator_chip": "Fabricator Chip",
+  "item.fabricated.fabricator_module": "Fabricator Module",
 
   "sound.fabricated.fabricator_open": "Fabricator opens",
   "sound.fabricated.fabricator_close": "Fabricator closes",
