@@ -44,8 +44,8 @@ public class FabricatedMod
 
         ItemInit.register(modEventBus);
         BlockInit.register(modEventBus);
-        ItemTabInit.register(modEventBus);
         BlockEntityInit.register(modEventBus);
+        MenuInit.register(modEventBus);
         SoundInit.register(modEventBus);
 
         modEventBus.addListener(this::commonSetup);

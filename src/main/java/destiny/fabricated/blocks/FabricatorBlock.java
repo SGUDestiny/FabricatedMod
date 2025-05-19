@@ -58,6 +58,7 @@ public class FabricatorBlock extends BaseEntityBlock implements SimpleWaterlogge
                 fabricator.fabricate(pLevel, pPos, fabricator);
             } else if (pPlayer.isCrouching()) {
                 fabricator.close(pLevel, pPos, fabricator);
+                fabricator.openUpgradesMenu(pPlayer, pLevel, pPos, fabricator);
             } else {
                 fabricator.open(pLevel, pPos, fabricator);
             }
