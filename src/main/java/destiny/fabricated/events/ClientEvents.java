@@ -2,12 +2,14 @@ package destiny.fabricated.events;
 
 import destiny.fabricated.FabricatedMod;
 import destiny.fabricated.client.renderer.block.FabricatorBlockRenderer;
+import destiny.fabricated.client.screen.FabricatorCraftScreen;
 import destiny.fabricated.client.screen.FabricatorUpgradeScreen;
 import destiny.fabricated.init.BlockEntityInit;
 import destiny.fabricated.init.ItemInit;
 import destiny.fabricated.init.MenuInit;
 import destiny.fabricated.items.FabricatorBulkModuleItem;
 import destiny.fabricated.items.FabricatorRecipeModuleItem;
+import destiny.fabricated.menu.FabricatorCraftingMenu;
 import destiny.fabricated.menu.FabricatorUpgradesMenu;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -35,6 +37,7 @@ public class ClientEvents {
     public static void clientSetup(final FMLClientSetupEvent event)
     {
         MenuScreens.register(MenuInit.FABRICATOR_UPGRADES.get(), FabricatorUpgradeScreen::new);
+        MenuScreens.register(MenuInit.FABRICATOR_CRAFTING.get(), FabricatorCraftScreen::new);
     }
 
     @SubscribeEvent
@@ -46,7 +49,6 @@ public class ClientEvents {
         if(event.getTabKey().equals(CreativeModeTabs.TOOLS_AND_UTILITIES))
         {
             event.accept(FabricatorRecipeModuleItem.createDefault(ItemInit.FABRICATOR_RECIPE_MODULE.get()));
-            event.accept(FabricatorRecipeModuleItem.create(ItemInit.FABRICATOR_RECIPE_MODULE.get(), List.of(RecipeType.CRAFTING, RecipeType.BLASTING, RecipeType.STONECUTTING)));
 
             event.accept(FabricatorBulkModuleItem.create(ItemInit.FABRICATOR_BULK_MODULE_1.get(), 16));
             event.accept(FabricatorBulkModuleItem.create(ItemInit.FABRICATOR_BULK_MODULE_2.get(), 32));

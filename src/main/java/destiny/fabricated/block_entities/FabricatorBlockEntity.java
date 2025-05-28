@@ -2,32 +2,46 @@ package destiny.fabricated.block_entities;
 
 import destiny.fabricated.init.BlockEntityInit;
 import destiny.fabricated.init.SoundInit;
+import destiny.fabricated.items.FabricatorRecipeModuleItem;
+import destiny.fabricated.menu.FabricatorCraftingMenu;
 import destiny.fabricated.menu.FabricatorUpgradesMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.network.NetworkHooks;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoBlockEntity;
+import destiny.fabricated.items.FabricatorRecipeModuleItem.RecipeData;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.core.animation.AnimatableManager;
 import software.bernie.geckolib.core.animation.AnimationController;
 import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
 {
@@ -40,6 +54,8 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
     protected static final RawAnimation CLOSE = RawAnimation.begin().thenPlay("close");
 
     public ItemStackHandler upgrades = createHandler(6);
+    public List<RecipeData> recipeTypes = new ArrayList<>();
+    public boolean open;
 
     public FabricatorBlockEntity(BlockPos pPos, BlockState pBlockState)
     {
@@ -53,7 +69,15 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
 
     public static void tick(Level level, BlockPos pos, BlockState state, FabricatorBlockEntity fabricator)
     {
-
+        fabricator.recipeTypes.clear();
+        for (int i = 0; i < fabricator.upgrades.getSlots(); i++)
+        {
+            ItemStack stack = fabricator.upgrades.getStackInSlot(i);
+            if(stack.getItem() instanceof FabricatorRecipeModuleItem recipeModule)
+            {
+                fabricator.recipeTypes.addAll(recipeModule.getRecipeTypes(stack));
+            }
+        }
     }
 
     @Override
@@ -61,6 +85,10 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
     {
         super.saveAdditional(tag);
         tag.put("upgrades", upgrades.serializeNBT());
+        ListTag recipeList = new ListTag();
+        this.recipeTypes.forEach(data -> recipeList.add(data.serialize()));
+        tag.put("recipes", recipeList);
+        tag.putBoolean("open", this.open);
     }
 
     @Override
@@ -68,6 +96,12 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
     {
         super.load(tag);
         this.upgrades.deserializeNBT(tag.getCompound("upgrades"));
+        tag.getList("recipes", StringTag.TAG_STRING).forEach(keyTag -> {
+            RecipeData data = new RecipeData();
+            data.deserialize(((CompoundTag) keyTag));
+            this.recipeTypes.add(data);
+        });
+        this.open = tag.getBoolean("open");
     }
 
     public void open(Level level, BlockPos pos, FabricatorBlockEntity fabricator)
@@ -75,6 +109,7 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
         fabricator.stopTriggeredAnimation("fabricator", null);
         fabricator.triggerAnim("fabricator", "open_then_idle");
         level.playSound(null, pos, SoundInit.FABRICATOR_OPEN.get(), SoundSource.BLOCKS);
+        this.open = true;
     }
 
     public void close(Level level, BlockPos pos, FabricatorBlockEntity fabricator)
@@ -82,6 +117,7 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
         fabricator.stopTriggeredAnimation("fabricator", null);
         fabricator.triggerAnim("fabricator", "close");
         level.playSound(null, pos, SoundInit.FABRICATOR_CLOSE.get(), SoundSource.BLOCKS);
+        this.open = false;
     }
 
     public void fabricate(Level level, BlockPos pos, FabricatorBlockEntity fabricator)
@@ -121,6 +157,29 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
                 }
             };
             NetworkHooks.openScreen((ServerPlayer) player, provider, fabricator.getBlockPos());
+        }
+    }
+
+    public void openCraftingMenu(Player player, Level level, BlockPos pos, FabricatorBlockEntity fabricator)
+    {
+        if(!level.isClientSide())
+        {
+            MenuProvider provider = new MenuProvider() {
+                @Override
+                public Component getDisplayName()
+                {
+                    return Component.translatable("screen.fabricated.fabricator_upgrades");
+                }
+
+                @Override
+                public @Nullable AbstractContainerMenu createMenu(int pContainerId, Inventory pPlayerInventory,
+                                                                  Player pPlayer)
+                {
+                    return new FabricatorCraftingMenu(pContainerId, pPlayerInventory, fabricator);
+                }
+            };
+            NetworkHooks.openScreen((ServerPlayer) player, provider, fabricator.getBlockPos());
+            this.open(level, pos, fabricator);
         }
     }
 

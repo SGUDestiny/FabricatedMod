@@ -1,6 +1,7 @@
 package destiny.fabricated.init;
 
 import destiny.fabricated.FabricatedMod;
+import destiny.fabricated.menu.FabricatorCraftingMenu;
 import destiny.fabricated.menu.FabricatorUpgradesMenu;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
@@ -17,6 +18,8 @@ public class MenuInit
 
     public static final RegistryObject<MenuType<FabricatorUpgradesMenu>> FABRICATOR_UPGRADES =
             registerMenuType(FabricatorUpgradesMenu::new, "fabricator_upgrades");
+    public static final RegistryObject<MenuType<FabricatorCraftingMenu>> FABRICATOR_CRAFTING =
+            registerMenuType(FabricatorCraftingMenu::new, "fabricator_crafting");
 
 
     private static <T extends AbstractContainerMenu> RegistryObject<MenuType<T>> registerMenuType(

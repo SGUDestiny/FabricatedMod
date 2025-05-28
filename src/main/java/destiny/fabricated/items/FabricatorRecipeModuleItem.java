@@ -2,6 +2,7 @@ package destiny.fabricated.items;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
@@ -13,6 +14,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,12 +30,11 @@ public class FabricatorRecipeModuleItem extends FabricatorModuleItem
         super(pProperties);
     }
 
-    public static ItemStack create(FabricatorRecipeModuleItem item, List<RecipeType<?>> recipes)
+    public static ItemStack create(FabricatorRecipeModuleItem item, List<RecipeData> recipes)
     {
         ItemStack stack = new ItemStack(item);
-        List<ResourceKey<RecipeType<?>>> recipeTypes = new ArrayList<>();
-        recipes.forEach(type -> recipeTypes.add(ResourceKey.create(ForgeRegistries.RECIPE_TYPES.getRegistryKey(), ForgeRegistries.RECIPE_TYPES.getKey(type))));
-        item.setRecipeTypes(stack, recipeTypes);
+        List<RecipeData> recipeDatas = new ArrayList<>(recipes);
+        item.setRecipeTypes(stack, recipeDatas);
 
         return stack;
     }
@@ -41,9 +42,9 @@ public class FabricatorRecipeModuleItem extends FabricatorModuleItem
     public static ItemStack createDefault(FabricatorRecipeModuleItem item)
     {
         ItemStack stack = new ItemStack(item);
-        List<ResourceKey<RecipeType<?>>> recipeTypes = new ArrayList<>();
-        recipeTypes.add(ResourceKey.create(ForgeRegistries.RECIPE_TYPES.getRegistryKey(), ForgeRegistries.RECIPE_TYPES.getKey(RecipeType.CRAFTING)));
-        recipeTypes.add(ResourceKey.create(ForgeRegistries.RECIPE_TYPES.getRegistryKey(), ForgeRegistries.RECIPE_TYPES.getKey(RecipeType.SMELTING)));
+        List<RecipeData> recipeTypes = new ArrayList<>();
+        recipeTypes.add(new RecipeData(Blocks.CRAFTING_TABLE.asItem(), Component.literal("Crafting"), ResourceKey.create(ForgeRegistries.RECIPE_TYPES.getRegistryKey(), ForgeRegistries.RECIPE_TYPES.getKey(RecipeType.CRAFTING))));
+        recipeTypes.add(new RecipeData(Blocks.FURNACE.asItem(), Component.literal("Smelting"), ResourceKey.create(ForgeRegistries.RECIPE_TYPES.getRegistryKey(), ForgeRegistries.RECIPE_TYPES.getKey(RecipeType.SMELTING))));
 
 
         item.setRecipeTypes(stack, recipeTypes);
@@ -56,34 +57,90 @@ public class FabricatorRecipeModuleItem extends FabricatorModuleItem
                                 TooltipFlag pIsAdvanced)
     {
         super.appendHoverText(pStack, pLevel, pTooltipComponents, pIsAdvanced);
-        this.getRecipeTypes(pStack).forEach(key ->
+        this.getRecipeTypes(pStack).forEach(data ->
         {
-            if(key.location() != null)
-                pTooltipComponents.add(Component.literal(key.location().toString()).withStyle(ChatFormatting.DARK_PURPLE));
+            if(data != null)
+                pTooltipComponents.add(data.nameComponent.copy().withStyle(ChatFormatting.DARK_PURPLE));
         });
     }
 
-    public List<ResourceKey<RecipeType<?>>> getRecipeTypes(ItemStack stack)
+    public List<RecipeData> getRecipeTypes(ItemStack stack)
     {
-        List<ResourceKey<RecipeType<?>>> recipes = new ArrayList<>();
+        List<RecipeData> recipes = new ArrayList<>();
         if(stack.getTag() != null && stack.getTag().contains(RECIPE_TYPES))
         {
-            ListTag listTag = stack.getTag().getList(RECIPE_TYPES, Tag.TAG_STRING);
+            ListTag listTag = stack.getTag().getList(RECIPE_TYPES, Tag.TAG_COMPOUND);
             listTag.forEach(tag -> {
-                String raw = tag.getAsString();
-                ResourceKey<RecipeType<?>> resourceKey = ResourceKey.create(ForgeRegistries.RECIPE_TYPES.getRegistryKey(), ResourceLocation.tryParse(raw));
-                recipes.add(resourceKey);
+                RecipeData data = new RecipeData();
+                data.deserialize(((CompoundTag) tag));
+                recipes.add(data);
             });
         }
 
         return recipes;
     }
 
-    public void setRecipeTypes(ItemStack stack, List<ResourceKey<RecipeType<?>>> recipes)
+    public void setRecipeTypes(ItemStack stack, List<RecipeData> recipes)
     {
         ListTag list = new ListTag();
-        recipes.forEach(key -> list.add(StringTag.valueOf(key.location().toString())));
+        recipes.forEach(data -> list.add(data.serialize()));
 
         stack.getOrCreateTag().put(RECIPE_TYPES, list);
+    }
+
+    public static class RecipeData
+    {
+        public static final String RECIPE_KEY = "recipe_key";
+        public static final String NAME = "name";
+        public static final String ITEM = "item";
+
+        public ResourceKey<RecipeType<?>> key;
+        public Component nameComponent;
+        public Item item;
+
+        public RecipeData()
+        {
+
+        }
+
+        public RecipeData(Item item, Component name, ResourceKey<RecipeType<?>> key)
+        {
+            this.item = item;
+            this.nameComponent = name;
+            this.key = key;
+        }
+
+        public Item getItem()
+        {
+            return item;
+        }
+
+        public Component getName()
+        {
+            return nameComponent;
+        }
+
+        public ResourceKey<RecipeType<?>> getKey()
+        {
+            return key;
+        }
+
+        public CompoundTag serialize()
+        {
+            CompoundTag tag = new CompoundTag();
+
+            tag.putString(ITEM, ForgeRegistries.ITEMS.getKey(this.item).toString());
+            tag.putString(NAME, Component.Serializer.toJson(this.nameComponent));
+            tag.putString(RECIPE_KEY, this.key.location().toString());
+
+            return tag;
+        }
+
+        public void deserialize(CompoundTag tag)
+        {
+            this.item = ForgeRegistries.ITEMS.getValue(ResourceLocation.tryParse(tag.getString(ITEM)));
+            this.nameComponent = Component.Serializer.fromJson(tag.getString(NAME));
+            this.key = ResourceKey.create(ForgeRegistries.RECIPE_TYPES.getRegistryKey(), ResourceLocation.tryParse(tag.getString(RECIPE_KEY)));
+        }
     }
 }
