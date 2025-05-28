@@ -57,12 +57,11 @@ public class FabricatorBlock extends BaseEntityBlock implements SimpleWaterlogge
         {
             if (pPlayer.getMainHandItem().getItem() == Items.STICK)
             {
-                fabricator.fabricate(pLevel, pPos, fabricator);
+                fabricator.openUpgradesMenu(pPlayer, pLevel, pPos, fabricator);
             }
-            else if(pPlayer.isCrouching())
+            else if(pPlayer.isCrouching() && fabricator.open)
             {
                 fabricator.close(pLevel, pPos, fabricator);
-                fabricator.openUpgradesMenu(pPlayer, pLevel, pPos, fabricator);
             }
             else if(!fabricator.recipeTypes.isEmpty() && !fabricator.open)
             {
