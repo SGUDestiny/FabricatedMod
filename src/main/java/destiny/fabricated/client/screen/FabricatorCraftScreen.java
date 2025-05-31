@@ -114,11 +114,11 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
                     iO = 9;
 
                 float alpha = 1F;
-                if(i == baseI || i == baseI+7)
+                if(i == baseI || i == baseI+9)
                     alpha = 0.25f;
                 if(i == baseI+1 || i == baseI+8)
                     alpha = 0.5f;
-                if(i == baseI+2 || i == baseI+9)
+                if(i == baseI+2 || i == baseI+7)
                     alpha = 0.75f;
 
                 try
