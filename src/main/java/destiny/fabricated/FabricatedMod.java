@@ -55,7 +55,10 @@ public class FabricatedMod
 
     private void commonSetup(final FMLCommonSetupEvent event)
     {
-
+        event.enqueueWork(() ->
+        {
+           NetworkInit.registerPackets();
+        });
     }
 
     @SubscribeEvent

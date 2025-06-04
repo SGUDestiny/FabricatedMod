@@ -4,8 +4,10 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.datafixers.util.Pair;
 import destiny.fabricated.FabricatedMod;
+import destiny.fabricated.init.NetworkInit;
 import destiny.fabricated.items.FabricatorRecipeModuleItem.RecipeData;
 import destiny.fabricated.menu.FabricatorCraftingMenu;
+import destiny.fabricated.network.packets.FabricatorCraftItemPacket;
 import destiny.fabricated.util.RenderBlitUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -52,7 +54,7 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
         this.hasSelected = false;
         this.selectedType = -1;
         this.selectedRecipe = 0;
-        this.scrollAmount = 3;
+        this.scrollAmount = 0;
     }
 
     @Override
@@ -76,7 +78,7 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
             this.addWidget(this.createCraftButton(4, x, y, 18, 18));
         }
 
-        for(int i = 0; i<10; i++)
+        for(int i = 0; i<11; i++)
         {
             if(i == 4)
                 continue;
@@ -125,48 +127,75 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
 
         if(hasSelected)
         {
-            int baseI = Math.max(0, 0);
-            int iO = 0;
+            int baseI = 2;
+            int iO = 3;
             int recipeI = -1;
+            int amountToScroll = scrollAmount;
+            if(scrollAmount == 1)
+            {
+                iO -= 1;
+                amountToScroll -= 1;
+            }
+            if(scrollAmount == 2)
+            {
+                iO -= 2;
+                amountToScroll -= 2;
+            }
+            if(scrollAmount == 3)
+            {
+                iO -= 3;
+                amountToScroll -= 3;
+            }
+            if(scrollAmount > 3)
+            {
+                iO -= 3;
+                amountToScroll -= 3;
+            }
+
             for (int i = baseI; i < baseI+10; i++)
             {
+
                 recipeI++;
                 iO++;
-                if(iO > 10)
-                    iO = 9;
-
-                if(i < baseI+1 && scrollAmount < 3)
-                {
-                    recipeI -= 1;
-                    continue;
-                }
-                if(i < baseI+2 && scrollAmount < 2)
-                {
-                    recipeI -= 1;
-                    continue;
-                }
-                if(i < baseI+3 && scrollAmount < 1)
-                {
-                    recipeI -= 1;
-                    continue;
-                }
-
-                if (scrollAmount > 3)
-                {
-                    recipeI += scrollAmount-3;
-                }
 
                 float alpha = 1F;
-                if(i == baseI || i == baseI+9)
+
+                if(i == baseI && scrollAmount >= 3)
+                {
                     alpha = 0.25f;
-                if(i == baseI+1 || i == baseI+8)
+                }
+                if(i == baseI && scrollAmount == 2)
+                {
                     alpha = 0.5f;
-                if(i == baseI+2 || i == baseI+7)
+                }
+                if(i == baseI && scrollAmount == 1)
+                {
+                    alpha = 0.75f;
+                }
+
+                if(i == baseI+1 && scrollAmount >= 3)
+                {
+                    alpha = 0.5f;
+                }
+                if(i == baseI+1 && scrollAmount == 2)
+                {
+                    alpha = 0.75f;
+                }
+
+                if(i == baseI+2 && scrollAmount >= 3)
+                    alpha = 0.75f;
+
+                if(i == baseI+9)
+                    alpha = 0.25f;
+                if(i == baseI+8)
+                    alpha = 0.5f;
+                if(i == baseI+7)
                     alpha = 0.75f;
 
                 try
                 {
-                    Map.Entry<Item, List<Recipe<Container>>> items = recipes.get(recipeI);
+
+                    Map.Entry<Item, List<Recipe<Container>>> items = recipes.get(recipeI+(amountToScroll));
                     Recipe<Container> recipe = items.getValue().get(0);
                     if(recipe != null)
                     {
@@ -262,8 +291,9 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
                 if(!hasSelected)
                     return;
 
-                //recipes.get(scrollAmount);
-                System.out.println(recipes.get(scrollAmount).getKey().getDefaultInstance().getDisplayName().getString());
+                ItemStack stackToCraft = recipes.get(scrollAmount).getValue().get(0).getResultItem(Minecraft.getInstance().level.registryAccess());
+
+                NetworkInit.sendToServer(new FabricatorCraftItemPacket(stackToCraft, menu.blockEntity.getBlockPos()));
             }
         };
     }
@@ -294,7 +324,6 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
                     return;
 
                 scrollAmount = scrollAmount + id;
-                //System.out.println((scrollAmount-id) + " : " + scrollAmount);
             }
         };
     }
@@ -306,7 +335,8 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
         List<Recipe<Container>> recipes = recipeManager.getAllRecipesFor(((RecipeType<Recipe<Container>>) recipeType));
 
         Map<Item, List<Recipe<Container>>> recipeList = recipes.stream().collect(Collectors.groupingBy(recipe -> recipe.getResultItem(Minecraft.getInstance().level.registryAccess()).getItem()));
-        this.recipes = recipeList.entrySet().stream().toList();
+        this.recipes = recipeList.entrySet().stream().sorted(Comparator.comparing(entry -> entry.getKey().getDefaultInstance().getDisplayName().getString())).toList();
 
+        this.recipes = this.recipes.stream().filter(entry -> entry.getKey() != Items.AIR).toList();
     }
 }
