@@ -2,6 +2,7 @@ package destiny.fabricated.client.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
+import com.mojang.datafixers.util.Pair;
 import destiny.fabricated.FabricatedMod;
 import destiny.fabricated.items.FabricatorRecipeModuleItem.RecipeData;
 import destiny.fabricated.menu.FabricatorCraftingMenu;
@@ -19,6 +20,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.*;
@@ -26,17 +28,18 @@ import net.minecraftforge.registries.ForgeRegistries;
 import org.joml.Matrix4f;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCraftingMenu>
 {
     public static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(FabricatedMod.MODID, "textures/gui/fabricator_icon_bg.png");
-    public List<Recipe<Container>> recipes;
+    public static final ResourceLocation ARROW_UP_TEXTURE = ResourceLocation.fromNamespaceAndPath(FabricatedMod.MODID, "textures/gui/fabricator_arrow_up.png");
+    public static final ResourceLocation ARROW_DOWN_TEXTURE = ResourceLocation.fromNamespaceAndPath(FabricatedMod.MODID, "textures/gui/fabricator_arrow_down.png");
+    public List<Map.Entry<Item, List<Recipe<Container>>>> recipes;
     public int selectedRecipe;
     public boolean hasSelected;
+    public int scrollAmount;
     public int selectedType;
 
     public FabricatorCraftScreen(FabricatorCraftingMenu pMenu, Inventory pPlayerInventory, Component pTitle)
@@ -49,6 +52,7 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
         this.hasSelected = false;
         this.selectedType = -1;
         this.selectedRecipe = 0;
+        this.scrollAmount = 3;
     }
 
     @Override
@@ -64,6 +68,22 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
             int y = baseY+(i*22)+120;
 
             this.addWidget(this.createButton(i, x, y, 18, 18, this.menu.recipeTypes.get(i)));
+        }
+
+        {
+            int y = baseY+(4*22)+(selectedType*22)+32;
+            int x = baseX+140;
+            this.addWidget(this.createCraftButton(4, x, y, 18, 18));
+        }
+
+        for(int i = 0; i<10; i++)
+        {
+            if(i == 4)
+                continue;
+
+            int y = baseY+(i*22)+(selectedType*22)+32;
+            int x = baseX+140;
+            this.addWidget(this.createScrollButton(i-4, x, y, 18, 18));
         }
     }
 
@@ -107,11 +127,34 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
         {
             int baseI = Math.max(0, 0);
             int iO = 0;
+            int recipeI = -1;
             for (int i = baseI; i < baseI+10; i++)
             {
+                recipeI++;
                 iO++;
                 if(iO > 10)
                     iO = 9;
+
+                if(i < baseI+1 && scrollAmount < 3)
+                {
+                    recipeI -= 1;
+                    continue;
+                }
+                if(i < baseI+2 && scrollAmount < 2)
+                {
+                    recipeI -= 1;
+                    continue;
+                }
+                if(i < baseI+3 && scrollAmount < 1)
+                {
+                    recipeI -= 1;
+                    continue;
+                }
+
+                if (scrollAmount > 3)
+                {
+                    recipeI += scrollAmount-3;
+                }
 
                 float alpha = 1F;
                 if(i == baseI || i == baseI+9)
@@ -123,7 +166,8 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
 
                 try
                 {
-                    Recipe recipe = recipes.get(i);
+                    Map.Entry<Item, List<Recipe<Container>>> items = recipes.get(recipeI);
+                    Recipe<Container> recipe = items.getValue().get(0);
                     if(recipe != null)
                     {
                         int x = baseX+140;
@@ -194,6 +238,63 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
                 recipeStuff(ForgeRegistries.RECIPE_TYPES.getValue(data.getKey().location()));
                 selectedType = id;
                 hasSelected = true;
+                scrollAmount = 0;
+                rebuildWidgets();
+            }
+        };
+    }
+
+    public AbstractButton createCraftButton(int number, int x, int y, int width, int height)
+    {
+        return new AbstractButton(x, y, width, height, Component.empty())
+        {
+            public final int id = number;
+
+            @Override
+            protected void updateWidgetNarration(NarrationElementOutput pNarrationElementOutput)
+            {
+                defaultButtonNarrationText(pNarrationElementOutput);
+            }
+
+            @Override
+            public void onPress()
+            {
+                if(!hasSelected)
+                    return;
+
+                //recipes.get(scrollAmount);
+                System.out.println(recipes.get(scrollAmount).getKey().getDefaultInstance().getDisplayName().getString());
+            }
+        };
+    }
+
+    public AbstractButton createScrollButton(int number, int x, int y, int width, int height)
+    {
+        return new AbstractButton(x, y, width, height, Component.empty())
+        {
+            public final int id = number;
+
+            @Override
+            protected void updateWidgetNarration(NarrationElementOutput pNarrationElementOutput)
+            {
+                defaultButtonNarrationText(pNarrationElementOutput);
+            }
+
+            @Override
+            public void onPress()
+            {
+                if(!hasSelected)
+                    return;
+
+                if(id == -1 && scrollAmount < 1)
+                    return;
+                if(id == -2 && scrollAmount < 2)
+                    return;
+                if(id == -3 && scrollAmount < 3)
+                    return;
+
+                scrollAmount = scrollAmount + id;
+                //System.out.println((scrollAmount-id) + " : " + scrollAmount);
             }
         };
     }
@@ -203,8 +304,9 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
         RecipeManager recipeManager = Objects.requireNonNull(Minecraft.getInstance().level).getRecipeManager();
 
         List<Recipe<Container>> recipes = recipeManager.getAllRecipesFor(((RecipeType<Recipe<Container>>) recipeType));
-        this.recipes = recipes;
 
+        Map<Item, List<Recipe<Container>>> recipeList = recipes.stream().collect(Collectors.groupingBy(recipe -> recipe.getResultItem(Minecraft.getInstance().level.registryAccess()).getItem()));
+        this.recipes = recipeList.entrySet().stream().toList();
 
     }
 }
