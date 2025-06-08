@@ -36,6 +36,7 @@ import destiny.fabricated.items.FabricatorRecipeModuleItem.RecipeData;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.core.animation.AnimatableManager;
 import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.core.animation.AnimationState;
 import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
@@ -47,11 +48,19 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
 {
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
-    protected static final RawAnimation OPEN = RawAnimation.begin().thenPlay("open");
-    protected static final RawAnimation OPEN_THEN_IDLE = RawAnimation.begin().thenPlay("open").thenLoop("open_idle");
-    protected static final RawAnimation OPEN_IDLE = RawAnimation.begin().thenLoop("open_idle");
-    protected static final RawAnimation FABRICATE_THEN_IDLE = RawAnimation.begin().thenPlay("fabricate").thenLoop("open_idle");
-    protected static final RawAnimation CLOSE = RawAnimation.begin().thenPlay("close");
+    protected static class Animations {
+        protected static final String MAIN_CONTROLLER = "main";
+
+        protected static final RawAnimation OPEN = RawAnimation.begin().thenPlay("fabricator.open");
+        protected static final RawAnimation OPEN_THEN_IDLE = RawAnimation.begin().thenPlay("open").thenLoop("fabricator.open_idle");
+        protected static final RawAnimation OPEN_IDLE = RawAnimation.begin().thenLoop("fabricator.open_idle");
+        protected static final RawAnimation FABRICATE_THEN_IDLE = RawAnimation.begin().thenPlay("fabricator.fabricate").thenLoop("fabricator.open_idle");
+        protected static final RawAnimation IDLE_LOOP = RawAnimation.begin().thenLoop("fabricator.idle_loop");
+        protected static final RawAnimation CLOSE = RawAnimation.begin().thenPlay("fabricator.close");
+        protected static final RawAnimation CLOSE_THEN_IDLE = RawAnimation.begin().thenPlay("fabricator.close").thenLoop("fabricator.idle_loop");
+
+        private Animations() {}
+    }
 
     public ItemStackHandler upgrades = createHandler(6);
     public List<RecipeData> recipeTypes = new ArrayList<>();
@@ -106,30 +115,34 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
 
     public void open(Level level, BlockPos pos, FabricatorBlockEntity fabricator)
     {
-        fabricator.stopTriggeredAnimation("fabricator", null);
-        fabricator.triggerAnim("fabricator", "open_then_idle");
         level.playSound(null, pos, SoundInit.FABRICATOR_OPEN.get(), SoundSource.BLOCKS);
         this.open = true;
     }
 
     public void close(Level level, BlockPos pos, FabricatorBlockEntity fabricator)
     {
-        fabricator.stopTriggeredAnimation("fabricator", null);
-        fabricator.triggerAnim("fabricator", "close");
         level.playSound(null, pos, SoundInit.FABRICATOR_CLOSE.get(), SoundSource.BLOCKS);
         this.open = false;
     }
 
     public void fabricate(Level level, BlockPos pos, FabricatorBlockEntity fabricator)
     {
-        fabricator.stopTriggeredAnimation("fabricator", null);
         fabricator.triggerAnim("fabricator", "fabricate_then_idle");
         level.playSound(null, pos, SoundInit.FABRICATOR_FABRICATE.get(), SoundSource.BLOCKS);
     }
 
-    public void registerControllers(AnimatableManager.ControllerRegistrar controllers)
-    {
-        controllers.add(new AnimationController<>(this, "fabricator", 0, state -> PlayState.STOP).triggerableAnim("open", OPEN).triggerableAnim("open_then_idle", OPEN_THEN_IDLE).triggerableAnim("open_idle", OPEN_IDLE).triggerableAnim("fabricate_then_idle", FABRICATE_THEN_IDLE).triggerableAnim("close", CLOSE));
+    private <T extends FabricatorBlockEntity> PlayState handleAnimationState(AnimationState<T> state) {
+        if (open) {
+            return state.setAndContinue(Animations.OPEN_THEN_IDLE);
+        } else {
+            return state.setAndContinue(Animations.CLOSE_THEN_IDLE);
+        }
+    }
+
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        AnimationController<FabricatorBlockEntity> controller = new AnimationController<>(this, Animations.MAIN_CONTROLLER, 10, this::handleAnimationState);
+        controller.setAnimation(Animations.IDLE_LOOP);
+        controllers.add(controller);
     }
 
     @Override
