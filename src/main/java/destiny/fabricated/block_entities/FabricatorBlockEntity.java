@@ -127,7 +127,7 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
 
     public void fabricate(Level level, BlockPos pos, FabricatorBlockEntity fabricator)
     {
-        fabricator.triggerAnim("fabricator", "fabricate_then_idle");
+        fabricator.triggerAnim("main", Animations.FABRICATE_THEN_IDLE.toString());
         level.playSound(null, pos, SoundInit.FABRICATOR_FABRICATE.get(), SoundSource.BLOCKS);
     }
 

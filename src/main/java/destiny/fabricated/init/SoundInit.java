@@ -14,6 +14,7 @@ public class SoundInit {
     public static RegistryObject<SoundEvent> FABRICATOR_OPEN = registerSoundEvent("fabricator_open");
     public static RegistryObject<SoundEvent> FABRICATOR_FABRICATE = registerSoundEvent("fabricator_fabricate");
     public static RegistryObject<SoundEvent> FABRICATOR_CLOSE = registerSoundEvent("fabricator_close");
+    public static RegistryObject<SoundEvent> FABRICATOR_BUTTON = registerSoundEvent("fabricator_button");
 
     private static RegistryObject<SoundEvent> registerSoundEvent(String sound)
     {

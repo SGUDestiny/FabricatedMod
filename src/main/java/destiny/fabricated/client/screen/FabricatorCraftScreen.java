@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.*;
 import com.mojang.datafixers.util.Pair;
 import destiny.fabricated.FabricatedMod;
 import destiny.fabricated.init.NetworkInit;
+import destiny.fabricated.init.SoundInit;
 import destiny.fabricated.items.FabricatorRecipeModuleItem.RecipeData;
 import destiny.fabricated.menu.FabricatorCraftingMenu;
 import destiny.fabricated.network.packets.FabricatorCraftItemPacket;
@@ -16,6 +17,8 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -270,6 +273,12 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
                 scrollAmount = 0;
                 rebuildWidgets();
             }
+
+            @Override
+            public void playDownSound(SoundManager pHandler)
+            {
+                pHandler.play(SimpleSoundInstance.forUI(SoundInit.FABRICATOR_BUTTON.get(), 1.0F));
+            }
         };
     }
 
@@ -295,6 +304,9 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
 
                 NetworkInit.sendToServer(new FabricatorCraftItemPacket(stackToCraft, menu.blockEntity.getBlockPos()));
             }
+
+            @Override
+            public void playDownSound(SoundManager pHandler) {}
         };
     }
 
@@ -324,6 +336,12 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
                     return;
 
                 scrollAmount = scrollAmount + id;
+            }
+
+            @Override
+            public void playDownSound(SoundManager pHandler)
+            {
+                pHandler.play(SimpleSoundInstance.forUI(SoundInit.FABRICATOR_BUTTON.get(), 1.0F));
             }
         };
     }
