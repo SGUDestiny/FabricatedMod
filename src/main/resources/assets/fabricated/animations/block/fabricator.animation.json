@@ -7,7 +7,7 @@
 			"bones": {
 				"Top": {
 					"rotation": {
-						"vector": ["easeOutSine", "easeOutSine", "easeOutSine"]
+						"vector": [-90, 0, 0]
 					}
 				},
 				"PrinterRight": {
@@ -37,22 +37,22 @@
 				},
 				"Middle": {
 					"rotation": {
-						"vector": ["easeOutSine", "easeOutSine", "easeOutSine"]
+						"vector": [90, 0, 0]
 					}
 				},
 				"PlatformLeft": {
 					"rotation": {
-						"vector": ["easeOutSine", "easeOutSine", "easeOutSine"]
+						"vector": [-180, 0, -180]
 					}
 				},
 				"PrinterHeadRight": {
 					"position": {
-						"vector": ["easeInOutSine", "easeInOutSine", "easeInOutSine"]
+						"vector": [0, 0, 1.5]
 					}
 				},
 				"PlatformRight": {
 					"rotation": {
-						"vector": ["easeOutSine", "easeOutSine", "easeOutSine"]
+						"vector": [0, -180, 0]
 					}
 				},
 				"PrinterLeft": {
@@ -85,7 +85,7 @@
 				},
 				"PrinterHeadLeft": {
 					"position": {
-						"vector": ["easeInOutSine", "easeInOutSine", "easeInOutSine"]
+						"vector": [0, 0, 1.5]
 					}
 				}
 			}
