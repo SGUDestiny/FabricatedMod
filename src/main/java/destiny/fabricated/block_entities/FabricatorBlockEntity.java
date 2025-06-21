@@ -149,7 +149,7 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
     }
 
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        AnimationController<FabricatorBlockEntity> controller = new AnimationController<>(this, Animations.MAIN_CONTROLLER, 10, this::handleAnimationState);
+        AnimationController<FabricatorBlockEntity> controller = new AnimationController<>(this, Animations.MAIN_CONTROLLER, 0, this::handleAnimationState);
         //controller.setAnimation(Animations.IDLE_LOOP);
         controllers.add(controller);
     }
