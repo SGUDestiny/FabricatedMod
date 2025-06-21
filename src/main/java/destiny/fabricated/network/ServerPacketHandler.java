@@ -2,6 +2,7 @@ package destiny.fabricated.network;
 
 import destiny.fabricated.block_entities.FabricatorBlockEntity;
 import destiny.fabricated.network.packets.FabricatorCraftItemPacket;
+import destiny.fabricated.network.packets.FabricatorUpdateStatePacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.item.ItemEntity;
 
@@ -17,5 +18,10 @@ public class ServerPacketHandler
         {
             fabricator.fabricate(player.level(), packet.pos, fabricator);
         }
+    }
+
+    public static void handleFabricatorStateUpdate(FabricatorUpdateStatePacket packet, ServerPlayer player)
+    {
+
     }
 }

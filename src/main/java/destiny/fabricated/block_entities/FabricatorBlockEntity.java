@@ -1,10 +1,12 @@
 package destiny.fabricated.block_entities;
 
 import destiny.fabricated.init.BlockEntityInit;
+import destiny.fabricated.init.NetworkInit;
 import destiny.fabricated.init.SoundInit;
 import destiny.fabricated.items.FabricatorRecipeModuleItem;
 import destiny.fabricated.menu.FabricatorCraftingMenu;
 import destiny.fabricated.menu.FabricatorUpgradesMenu;
+import destiny.fabricated.network.packets.FabricatorUpdateStatePacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -52,7 +54,7 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
         protected static final String MAIN_CONTROLLER = "main";
 
         protected static final RawAnimation OPEN = RawAnimation.begin().thenPlay("fabricator.open");
-        protected static final RawAnimation OPEN_THEN_IDLE = RawAnimation.begin().thenPlay("open").thenLoop("fabricator.open_idle");
+        protected static final RawAnimation OPEN_THEN_IDLE = RawAnimation.begin().thenPlay("fabricator.open").thenLoop("fabricator.open_idle");
         protected static final RawAnimation OPEN_IDLE = RawAnimation.begin().thenLoop("fabricator.open_idle");
         protected static final RawAnimation FABRICATE_THEN_IDLE = RawAnimation.begin().thenPlay("fabricator.fabricate").thenLoop("fabricator.open_idle");
         protected static final RawAnimation IDLE_LOOP = RawAnimation.begin().thenLoop("fabricator.idle_loop");
@@ -116,13 +118,20 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
     public void open(Level level, BlockPos pos, FabricatorBlockEntity fabricator)
     {
         level.playSound(null, pos, SoundInit.FABRICATOR_OPEN.get(), SoundSource.BLOCKS);
-        this.open = true;
+
+        if(level.isClientSide())
+            open = true;
+        else NetworkInit.sendToTracking(fabricator, new FabricatorUpdateStatePacket(pos, true));
+
     }
 
     public void close(Level level, BlockPos pos, FabricatorBlockEntity fabricator)
     {
         level.playSound(null, pos, SoundInit.FABRICATOR_CLOSE.get(), SoundSource.BLOCKS);
-        this.open = false;
+
+        if(level.isClientSide())
+            open = false;
+        else NetworkInit.sendToTracking(fabricator, new FabricatorUpdateStatePacket(pos, false));
     }
 
     public void fabricate(Level level, BlockPos pos, FabricatorBlockEntity fabricator)
@@ -141,7 +150,7 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
 
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         AnimationController<FabricatorBlockEntity> controller = new AnimationController<>(this, Animations.MAIN_CONTROLLER, 10, this::handleAnimationState);
-        controller.setAnimation(Animations.IDLE_LOOP);
+        //controller.setAnimation(Animations.IDLE_LOOP);
         controllers.add(controller);
     }
 
