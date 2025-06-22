@@ -258,6 +258,9 @@
 						}
 					}
 				}
+			},
+			"timeline": {
+				"3.1": "craftItem"
 			}
 		},
 		"fabricator.close": {

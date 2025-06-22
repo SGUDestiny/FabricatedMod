@@ -51,11 +51,8 @@ public class FabricatorCraftingMenu extends AbstractContainerMenu
     @Override
     public void removed(Player pPlayer)
     {
-        if(this.blockEntity.open)
-            this.blockEntity.close(this.level, this.blockEntity.getBlockPos(), this.blockEntity);
+        this.blockEntity.close(this.level, this.blockEntity.getBlockPos(), this.blockEntity);
     }
-
-
 
     @Override
     public void slotsChanged(Container pContainer)

@@ -81,7 +81,7 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
             this.addWidget(this.createCraftButton(4, x, y, 18, 18));
         }
 
-        for(int i = 0; i<11; i++)
+        for(int i = 0; i<10; i++)
         {
             if(i == 4)
                 continue;
@@ -301,8 +301,8 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
                     return;
 
                 ItemStack stackToCraft = recipes.get(scrollAmount).getValue().get(0).getResultItem(Minecraft.getInstance().level.registryAccess());
-
-                NetworkInit.sendToServer(new FabricatorCraftItemPacket(stackToCraft, menu.blockEntity.getBlockPos()));
+                menu.blockEntity.fabricate(menu.level, menu.blockEntity.getBlockPos(), menu.blockEntity, stackToCraft);
+                //NetworkInit.sendToServer(new FabricatorCraftItemPacket(stackToCraft, menu.blockEntity.getBlockPos()));
             }
 
             @Override

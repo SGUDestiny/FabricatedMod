@@ -6,6 +6,7 @@ import destiny.fabricated.init.SoundInit;
 import destiny.fabricated.items.FabricatorRecipeModuleItem;
 import destiny.fabricated.menu.FabricatorCraftingMenu;
 import destiny.fabricated.menu.FabricatorUpgradesMenu;
+import destiny.fabricated.network.packets.FabricatorCraftItemPacket;
 import destiny.fabricated.network.packets.FabricatorUpdateStatePacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -40,6 +41,7 @@ import software.bernie.geckolib.core.animation.AnimatableManager;
 import software.bernie.geckolib.core.animation.AnimationController;
 import software.bernie.geckolib.core.animation.AnimationState;
 import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.core.keyframe.event.CustomInstructionKeyframeEvent;
 import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
@@ -56,7 +58,7 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
         protected static final RawAnimation OPEN = RawAnimation.begin().thenPlay("fabricator.open");
         protected static final RawAnimation OPEN_THEN_IDLE = RawAnimation.begin().thenPlay("fabricator.open").thenLoop("fabricator.open_idle");
         protected static final RawAnimation OPEN_IDLE = RawAnimation.begin().thenLoop("fabricator.open_idle");
-        protected static final RawAnimation FABRICATE_THEN_IDLE = RawAnimation.begin().thenPlay("fabricator.fabricate").thenLoop("fabricator.open_idle");
+        protected static final RawAnimation FABRICATE_THEN_IDLE = RawAnimation.begin().thenPlay("fabricator.fabricate");
         protected static final RawAnimation IDLE_LOOP = RawAnimation.begin().thenLoop("fabricator.idle_loop");
         protected static final RawAnimation CLOSE = RawAnimation.begin().thenPlay("fabricator.close");
         protected static final RawAnimation CLOSE_THEN_IDLE = RawAnimation.begin().thenPlay("fabricator.close").thenLoop("fabricator.idle_loop");
@@ -66,7 +68,8 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
 
     public ItemStackHandler upgrades = createHandler(6);
     public List<RecipeData> recipeTypes = new ArrayList<>();
-    public boolean open;
+    public ItemStack craftStack = ItemStack.EMPTY;
+    public int state = 2;
 
     public FabricatorBlockEntity(BlockPos pPos, BlockState pBlockState)
     {
@@ -99,7 +102,7 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
         ListTag recipeList = new ListTag();
         this.recipeTypes.forEach(data -> recipeList.add(data.serialize()));
         tag.put("recipes", recipeList);
-        tag.putBoolean("open", this.open);
+        tag.putInt("state", this.state);
     }
 
     @Override
@@ -112,7 +115,7 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
             data.deserialize(((CompoundTag) keyTag));
             this.recipeTypes.add(data);
         });
-        this.open = tag.getBoolean("open");
+        this.state = tag.getInt("state");
     }
 
     public void open(Level level, BlockPos pos, FabricatorBlockEntity fabricator)
@@ -120,8 +123,8 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
         level.playSound(null, pos, SoundInit.FABRICATOR_OPEN.get(), SoundSource.BLOCKS);
 
         if(level.isClientSide())
-            open = true;
-        else NetworkInit.sendToTracking(fabricator, new FabricatorUpdateStatePacket(pos, true));
+            state = 1;
+        else NetworkInit.sendToTracking(fabricator, new FabricatorUpdateStatePacket(pos, 1));
 
     }
 
@@ -130,27 +133,46 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
         level.playSound(null, pos, SoundInit.FABRICATOR_CLOSE.get(), SoundSource.BLOCKS);
 
         if(level.isClientSide())
-            open = false;
-        else NetworkInit.sendToTracking(fabricator, new FabricatorUpdateStatePacket(pos, false));
+            state = 0;
+        else NetworkInit.sendToTracking(fabricator, new FabricatorUpdateStatePacket(pos, 0));
     }
 
-    public void fabricate(Level level, BlockPos pos, FabricatorBlockEntity fabricator)
+    public void fabricate(Level level, BlockPos pos, FabricatorBlockEntity fabricator, ItemStack stack)
     {
-        fabricator.triggerAnim("main", Animations.FABRICATE_THEN_IDLE.toString());
+        //fabricator.triggerAnim("main", Animations.FABRICATE_THEN_IDLE.toString());
         level.playSound(null, pos, SoundInit.FABRICATOR_FABRICATE.get(), SoundSource.BLOCKS);
+
+        this.craftStack = stack;
+        if(level.isClientSide())
+            state = 3;
+        else NetworkInit.sendToTracking(fabricator, new FabricatorUpdateStatePacket(pos, 3));
     }
 
     private <T extends FabricatorBlockEntity> PlayState handleAnimationState(AnimationState<T> state) {
-        if (open) {
+        if (this.state == 1)
             return state.setAndContinue(Animations.OPEN_THEN_IDLE);
-        } else {
+        else if(this.state == 0)
             return state.setAndContinue(Animations.CLOSE_THEN_IDLE);
-        }
+        else if(this.state == 3)
+            return state.setAndContinue(Animations.FABRICATE_THEN_IDLE);
+        else if(this.state == 4)
+            return state.setAndContinue(Animations.OPEN_IDLE);
+        else
+            return state.setAndContinue(Animations.IDLE_LOOP);
     }
 
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         AnimationController<FabricatorBlockEntity> controller = new AnimationController<>(this, Animations.MAIN_CONTROLLER, 0, this::handleAnimationState);
         //controller.setAnimation(Animations.IDLE_LOOP);
+        controller.setCustomInstructionKeyframeHandler(
+        event ->
+        {
+            if(event.getKeyframeData().getInstructions().equals("craftItem"))
+            {
+                this.state = 4;
+                NetworkInit.sendToServer(new FabricatorCraftItemPacket(this.craftStack, this.getBlockPos()));
+            }
+        });
         controllers.add(controller);
     }
 

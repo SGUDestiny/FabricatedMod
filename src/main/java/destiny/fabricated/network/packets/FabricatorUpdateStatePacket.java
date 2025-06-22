@@ -12,23 +12,23 @@ import java.util.function.Supplier;
 public class FabricatorUpdateStatePacket
 {
     public BlockPos pos;
-    public boolean open;
+    public int state;
 
-    public FabricatorUpdateStatePacket(BlockPos pos, boolean open)
+    public FabricatorUpdateStatePacket(BlockPos pos, int state)
     {
         this.pos = pos;
-        this.open = open;
+        this.state = state;
     }
 
     public static void write(FabricatorUpdateStatePacket packet, FriendlyByteBuf buffer)
     {
-        buffer.writeBoolean(packet.open);
+        buffer.writeInt(packet.state);
         buffer.writeBlockPos(packet.pos);
     }
 
     public static FabricatorUpdateStatePacket read(FriendlyByteBuf buffer)
     {
-        boolean open = buffer.readBoolean();
+        int open = buffer.readInt();
         BlockPos pos = buffer.readBlockPos();
 
         return new FabricatorUpdateStatePacket(pos, open);

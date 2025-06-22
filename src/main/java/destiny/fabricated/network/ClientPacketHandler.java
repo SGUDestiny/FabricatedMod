@@ -12,7 +12,7 @@ public class ClientPacketHandler
         BlockEntity blockEntity = Minecraft.getInstance().level.getBlockEntity(packet.pos);
         if(blockEntity instanceof FabricatorBlockEntity fabricator)
         {
-            fabricator.open = packet.open;
+            fabricator.state = packet.state;
         }
     }
 }
