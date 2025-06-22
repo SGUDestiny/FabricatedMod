@@ -4,10 +4,12 @@ import destiny.fabricated.init.BlockEntityInit;
 import destiny.fabricated.init.NetworkInit;
 import destiny.fabricated.init.SoundInit;
 import destiny.fabricated.items.FabricatorRecipeModuleItem;
+import destiny.fabricated.items.FabricatorRecipeModuleItem.RecipeData;
 import destiny.fabricated.menu.FabricatorCraftingMenu;
 import destiny.fabricated.menu.FabricatorUpgradesMenu;
 import destiny.fabricated.network.packets.FabricatorCraftItemPacket;
 import destiny.fabricated.network.packets.FabricatorUpdateStatePacket;
+import destiny.fabricated.network.packets.ServerboundSoundPacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -15,8 +17,6 @@ import net.minecraft.nbt.StringTag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.MenuProvider;
@@ -24,24 +24,19 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.network.NetworkHooks;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoBlockEntity;
-import destiny.fabricated.items.FabricatorRecipeModuleItem.RecipeData;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.core.animation.AnimatableManager;
 import software.bernie.geckolib.core.animation.AnimationController;
 import software.bernie.geckolib.core.animation.AnimationState;
 import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.keyframe.event.CustomInstructionKeyframeEvent;
 import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
@@ -123,9 +118,14 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
         level.playSound(null, pos, SoundInit.FABRICATOR_OPEN.get(), SoundSource.BLOCKS);
 
         if(level.isClientSide())
+        {
             state = 1;
-        else NetworkInit.sendToTracking(fabricator, new FabricatorUpdateStatePacket(pos, 1));
-
+        }
+        else
+        {
+            this.state = 1;
+            NetworkInit.sendToTracking(fabricator, new FabricatorUpdateStatePacket(pos, 1));
+        }
     }
 
     public void close(Level level, BlockPos pos, FabricatorBlockEntity fabricator)
@@ -133,19 +133,30 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
         level.playSound(null, pos, SoundInit.FABRICATOR_CLOSE.get(), SoundSource.BLOCKS);
 
         if(level.isClientSide())
+        {
             state = 0;
-        else NetworkInit.sendToTracking(fabricator, new FabricatorUpdateStatePacket(pos, 0));
+        }
+        else
+        {
+            this.state = 0;
+            NetworkInit.sendToTracking(fabricator, new FabricatorUpdateStatePacket(pos, 0));
+        }
     }
 
     public void fabricate(Level level, BlockPos pos, FabricatorBlockEntity fabricator, ItemStack stack)
     {
-        //fabricator.triggerAnim("main", Animations.FABRICATE_THEN_IDLE.toString());
-        level.playSound(null, pos, SoundInit.FABRICATOR_FABRICATE.get(), SoundSource.BLOCKS);
 
         this.craftStack = stack;
         if(level.isClientSide())
+        {
             state = 3;
-        else NetworkInit.sendToTracking(fabricator, new FabricatorUpdateStatePacket(pos, 3));
+            NetworkInit.sendToServer(new ServerboundSoundPacket(pos, SoundInit.FABRICATOR_FABRICATE.get()));
+        }
+        else
+        {
+            this.state = 3;
+            NetworkInit.sendToTracking(fabricator, new FabricatorUpdateStatePacket(pos, 3));
+        }
     }
 
     private <T extends FabricatorBlockEntity> PlayState handleAnimationState(AnimationState<T> state) {

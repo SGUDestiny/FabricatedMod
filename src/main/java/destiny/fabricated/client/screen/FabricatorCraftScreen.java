@@ -22,6 +22,7 @@ import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -155,7 +156,7 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
                 amountToScroll -= 3;
             }
 
-            for (int i = baseI; i < baseI+10; i++)
+            for (int i = baseI; i < baseI+9; i++)
             {
 
                 recipeI++;
@@ -188,11 +189,11 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
                 if(i == baseI+2 && scrollAmount >= 3)
                     alpha = 0.75f;
 
-                if(i == baseI+9)
-                    alpha = 0.25f;
                 if(i == baseI+8)
-                    alpha = 0.5f;
+                    alpha = 0.25f;
                 if(i == baseI+7)
+                    alpha = 0.5f;
+                if(i == baseI+6)
                     alpha = 0.75f;
 
                 try
@@ -302,7 +303,6 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
 
                 ItemStack stackToCraft = recipes.get(scrollAmount).getValue().get(0).getResultItem(Minecraft.getInstance().level.registryAccess());
                 menu.blockEntity.fabricate(menu.level, menu.blockEntity.getBlockPos(), menu.blockEntity, stackToCraft);
-                //NetworkInit.sendToServer(new FabricatorCraftItemPacket(stackToCraft, menu.blockEntity.getBlockPos()));
             }
 
             @Override

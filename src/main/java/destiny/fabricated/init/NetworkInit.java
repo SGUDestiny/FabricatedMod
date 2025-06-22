@@ -3,6 +3,7 @@ package destiny.fabricated.init;
 import destiny.fabricated.FabricatedMod;
 import destiny.fabricated.network.packets.FabricatorCraftItemPacket;
 import destiny.fabricated.network.packets.FabricatorUpdateStatePacket;
+import destiny.fabricated.network.packets.ServerboundSoundPacket;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -23,6 +24,7 @@ public class NetworkInit
     public static void registerPackets(){
         INSTANCE.registerMessage(id(), FabricatorCraftItemPacket.class, FabricatorCraftItemPacket::write, FabricatorCraftItemPacket::read, FabricatorCraftItemPacket::handle);
         INSTANCE.registerMessage(id(), FabricatorUpdateStatePacket.class, FabricatorUpdateStatePacket::write, FabricatorUpdateStatePacket::read, FabricatorUpdateStatePacket::handle);
+        INSTANCE.registerMessage(id(), ServerboundSoundPacket.class, ServerboundSoundPacket::write, ServerboundSoundPacket::read, ServerboundSoundPacket::handle);
     }
 
     public static void sendPacketToAll(Object message){
