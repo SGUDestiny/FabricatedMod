@@ -39,7 +39,7 @@ public class FabricatorCraftingMenu extends AbstractContainerMenu
         super(MenuInit.FABRICATOR_CRAFTING.get(), pContainerId);
         this.blockEntity = ((FabricatorBlockEntity) blockEntity);
         this.level = inventory.player.level();
-        this.recipeTypes = ((FabricatorBlockEntity) blockEntity).recipeTypes;
+        this.recipeTypes = ((FabricatorBlockEntity) blockEntity).getRecipeTypes();
     }
 
     @Override

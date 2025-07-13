@@ -9,6 +9,7 @@ import destiny.fabricated.menu.FabricatorCraftingMenu;
 import destiny.fabricated.menu.FabricatorUpgradesMenu;
 import destiny.fabricated.network.packets.FabricatorCraftItemPacket;
 import destiny.fabricated.network.packets.FabricatorUpdateStatePacket;
+import destiny.fabricated.network.packets.ServerboundFabricatorStatePacket;
 import destiny.fabricated.network.packets.ServerboundSoundPacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -62,9 +63,12 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
     }
 
     public ItemStackHandler upgrades = createHandler(6);
-    public List<RecipeData> recipeTypes = new ArrayList<>();
     public ItemStack craftStack = ItemStack.EMPTY;
+    public boolean isOpen = false;
+
     public int state = 2;
+    public int fabricationStep = 0;
+    public int fabricationCounter = -1;
 
     public FabricatorBlockEntity(BlockPos pPos, BlockState pBlockState)
     {
@@ -78,15 +82,12 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
 
     public static void tick(Level level, BlockPos pos, BlockState state, FabricatorBlockEntity fabricator)
     {
-        fabricator.recipeTypes.clear();
-        for (int i = 0; i < fabricator.upgrades.getSlots(); i++)
+        if(fabricator.fabricationCounter != -1 )
         {
-            ItemStack stack = fabricator.upgrades.getStackInSlot(i);
-            if(stack.getItem() instanceof FabricatorRecipeModuleItem recipeModule)
-            {
-                fabricator.recipeTypes.addAll(recipeModule.getRecipeTypes(stack));
-            }
+            fabricator.fabricationCounter += 1;
         }
+        if(!fabricator.isOpen && fabricator.state == 4)
+            fabricator.close(level, pos, fabricator);
     }
 
     @Override
@@ -94,9 +95,7 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
     {
         super.saveAdditional(tag);
         tag.put("upgrades", upgrades.serializeNBT());
-        ListTag recipeList = new ListTag();
-        this.recipeTypes.forEach(data -> recipeList.add(data.serialize()));
-        tag.put("recipes", recipeList);
+        tag.putBoolean("is_open", isOpen);
         tag.putInt("state", this.state);
     }
 
@@ -105,12 +104,23 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
     {
         super.load(tag);
         this.upgrades.deserializeNBT(tag.getCompound("upgrades"));
-        tag.getList("recipes", StringTag.TAG_STRING).forEach(keyTag -> {
-            RecipeData data = new RecipeData();
-            data.deserialize(((CompoundTag) keyTag));
-            this.recipeTypes.add(data);
-        });
+        this.isOpen = tag.getBoolean("is_open");
         this.state = tag.getInt("state");
+    }
+
+    public List<RecipeData> getRecipeTypes()
+    {
+        List<RecipeData> recipeTypes = new ArrayList<>();
+        for (int i = 0; i < this.upgrades.getSlots(); i++)
+        {
+            ItemStack stack = this.upgrades.getStackInSlot(i);
+            if(stack.getItem() instanceof FabricatorRecipeModuleItem recipeModule)
+            {
+                recipeTypes.addAll(recipeModule.getRecipeTypes(stack));
+            }
+        }
+
+        return recipeTypes;
     }
 
     public void open(Level level, BlockPos pos, FabricatorBlockEntity fabricator)
@@ -120,6 +130,7 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
         if(level.isClientSide())
         {
             state = 1;
+            NetworkInit.sendToServer(new ServerboundFabricatorStatePacket(pos, 1, fabricator.isOpen));
         }
         else
         {
@@ -135,6 +146,7 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
         if(level.isClientSide())
         {
             state = 0;
+            NetworkInit.sendToServer(new ServerboundFabricatorStatePacket(pos, 0, false));
         }
         else
         {
@@ -151,6 +163,7 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
         {
             state = 3;
             NetworkInit.sendToServer(new ServerboundSoundPacket(pos, SoundInit.FABRICATOR_FABRICATE.get()));
+            NetworkInit.sendToServer(new ServerboundFabricatorStatePacket(pos, 3, fabricator.isOpen));
         }
         else
         {
@@ -174,14 +187,26 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
 
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         AnimationController<FabricatorBlockEntity> controller = new AnimationController<>(this, Animations.MAIN_CONTROLLER, 0, this::handleAnimationState);
-        //controller.setAnimation(Animations.IDLE_LOOP);
         controller.setCustomInstructionKeyframeHandler(
         event ->
         {
-            if(event.getKeyframeData().getInstructions().equals("craftItem"))
+            if (event.getKeyframeData().getInstructions().equals("start"))
             {
+                this.fabricationStep = 1;
+                this.fabricationCounter = 0;
+            }
+            if (event.getKeyframeData().getInstructions().equals("switch"))
+            {
+                this.fabricationStep = 2;
+                this.fabricationCounter = 0;
+            }
+            if (event.getKeyframeData().getInstructions().equals("end"))
+            {
+                this.fabricationStep = 0;
+                this.fabricationCounter = -1;
                 this.state = 4;
                 NetworkInit.sendToServer(new FabricatorCraftItemPacket(this.craftStack, this.getBlockPos()));
+                this.craftStack = ItemStack.EMPTY;
             }
         });
         controllers.add(controller);
@@ -235,6 +260,7 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
             };
             NetworkHooks.openScreen((ServerPlayer) player, provider, fabricator.getBlockPos());
             this.open(level, pos, fabricator);
+            this.isOpen = true;
         }
     }
 

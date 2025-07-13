@@ -59,7 +59,7 @@ public class FabricatorBlock extends BaseEntityBlock implements SimpleWaterlogge
             {
                 fabricator.openUpgradesMenu(pPlayer, pLevel, pPos, fabricator);
             }
-            else if(!fabricator.recipeTypes.isEmpty())
+            else if(!fabricator.getRecipeTypes().isEmpty())
             {
                 fabricator.openCraftingMenu(pPlayer, pLevel, pPos, fabricator);
             }

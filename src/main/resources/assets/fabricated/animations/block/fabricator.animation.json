@@ -260,7 +260,9 @@
 				}
 			},
 			"timeline": {
-				"3.1": "craftItem"
+				"0.125": "start",
+				"0.75": "switch",
+				"3.1": "end"
 			}
 		},
 		"fabricator.close": {

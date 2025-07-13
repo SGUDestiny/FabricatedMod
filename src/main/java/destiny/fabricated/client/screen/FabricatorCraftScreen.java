@@ -9,6 +9,7 @@ import destiny.fabricated.init.SoundInit;
 import destiny.fabricated.items.FabricatorRecipeModuleItem.RecipeData;
 import destiny.fabricated.menu.FabricatorCraftingMenu;
 import destiny.fabricated.network.packets.FabricatorCraftItemPacket;
+import destiny.fabricated.tooltip.RecipeTooltipComponent;
 import destiny.fabricated.util.RenderBlitUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -16,6 +17,7 @@ import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.sounds.SoundManager;
@@ -26,6 +28,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -156,13 +159,20 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
                 amountToScroll -= 3;
             }
 
-            for (int i = baseI; i < baseI+9; i++)
+            int recipeListSize = 9;
+            for (int i = baseI; i < baseI+recipeListSize; i++)
             {
 
                 recipeI++;
                 iO++;
 
                 float alpha = 1F;
+                if(scrollAmount == 2)
+                    recipeListSize = 8;
+                if(scrollAmount == 1)
+                    recipeListSize = 7;
+                if(scrollAmount == 0)
+                    recipeListSize = 6;
 
                 if(i == baseI && scrollAmount >= 3)
                 {
@@ -171,6 +181,7 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
                 if(i == baseI && scrollAmount == 2)
                 {
                     alpha = 0.5f;
+
                 }
                 if(i == baseI && scrollAmount == 1)
                 {
@@ -189,11 +200,11 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
                 if(i == baseI+2 && scrollAmount >= 3)
                     alpha = 0.75f;
 
-                if(i == baseI+8)
+                if(i == baseI+recipeListSize-1)
                     alpha = 0.25f;
-                if(i == baseI+7)
+                if(i == baseI+recipeListSize-2)
                     alpha = 0.5f;
-                if(i == baseI+6)
+                if(i == baseI+recipeListSize-3)
                     alpha = 0.75f;
 
                 try
@@ -212,7 +223,10 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
                         pose.pushPose();
                         if(pMouseX > x && pMouseX < x+18)
                             if(pMouseY > y && pMouseY < y+18)
-                                graphics.renderComponentTooltip(Minecraft.getInstance().font, List.of(stack.getHoverName()), pMouseX, pMouseY);
+                            {
+                                graphics.renderTooltip(Minecraft.getInstance().font, List.of(stack.getHoverName()), Optional.of(new RecipeTooltipComponent(recipe)) ,pMouseX, pMouseY);
+                            }
+
 
                         pose.translate(x, y, 0);
 
