@@ -53,6 +53,7 @@ public class FabricatorCraftingMenu extends AbstractContainerMenu
     {
         if(this.blockEntity.state != 3)
             this.blockEntity.close(this.level, this.blockEntity.getBlockPos(), this.blockEntity);
+        this.blockEntity.isOpen = false;
     }
 
     @Override

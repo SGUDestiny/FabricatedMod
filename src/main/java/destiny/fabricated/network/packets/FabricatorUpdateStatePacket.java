@@ -13,25 +13,29 @@ public class FabricatorUpdateStatePacket
 {
     public BlockPos pos;
     public int state;
+    public boolean open;
 
-    public FabricatorUpdateStatePacket(BlockPos pos, int state)
+    public FabricatorUpdateStatePacket(BlockPos pos, int state, boolean open)
     {
         this.pos = pos;
         this.state = state;
+        this.open = open;
     }
 
     public static void write(FabricatorUpdateStatePacket packet, FriendlyByteBuf buffer)
     {
         buffer.writeInt(packet.state);
+        buffer.writeBoolean(packet.open);
         buffer.writeBlockPos(packet.pos);
     }
 
     public static FabricatorUpdateStatePacket read(FriendlyByteBuf buffer)
     {
         int open = buffer.readInt();
+        boolean opened = buffer.readBoolean();
         BlockPos pos = buffer.readBlockPos();
 
-        return new FabricatorUpdateStatePacket(pos, open);
+        return new FabricatorUpdateStatePacket(pos, open, opened);
     }
 
     public static void handle(FabricatorUpdateStatePacket packet, Supplier<NetworkEvent.Context> context)

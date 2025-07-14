@@ -11,6 +11,7 @@ import destiny.fabricated.network.packets.FabricatorCraftItemPacket;
 import destiny.fabricated.network.packets.FabricatorUpdateStatePacket;
 import destiny.fabricated.network.packets.ServerboundFabricatorStatePacket;
 import destiny.fabricated.network.packets.ServerboundSoundPacket;
+import net.minecraft.client.multiplayer.chat.report.ReportEnvironment;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -54,7 +55,7 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
         protected static final RawAnimation OPEN = RawAnimation.begin().thenPlay("fabricator.open");
         protected static final RawAnimation OPEN_THEN_IDLE = RawAnimation.begin().thenPlay("fabricator.open").thenLoop("fabricator.open_idle");
         protected static final RawAnimation OPEN_IDLE = RawAnimation.begin().thenLoop("fabricator.open_idle");
-        protected static final RawAnimation FABRICATE_THEN_IDLE = RawAnimation.begin().thenPlay("fabricator.fabricate");
+        protected static final RawAnimation FABRICATE_THEN_IDLE = RawAnimation.begin().thenPlay("fabricator.fabricate").thenLoop("fabricator.open_idle");
         protected static final RawAnimation IDLE_LOOP = RawAnimation.begin().thenLoop("fabricator.idle_loop");
         protected static final RawAnimation CLOSE = RawAnimation.begin().thenPlay("fabricator.close");
         protected static final RawAnimation CLOSE_THEN_IDLE = RawAnimation.begin().thenPlay("fabricator.close").thenLoop("fabricator.idle_loop");
@@ -82,11 +83,12 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
 
     public static void tick(Level level, BlockPos pos, BlockState state, FabricatorBlockEntity fabricator)
     {
-        if(fabricator.fabricationCounter != -1 )
+        if(fabricator.fabricationCounter != -1)
         {
             fabricator.fabricationCounter += 1;
         }
-        if(!fabricator.isOpen && fabricator.state == 4)
+
+        if(!level.isClientSide() && (!fabricator.isOpen && fabricator.state == 4))
             fabricator.close(level, pos, fabricator);
     }
 
@@ -130,12 +132,14 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
         if(level.isClientSide())
         {
             state = 1;
-            NetworkInit.sendToServer(new ServerboundFabricatorStatePacket(pos, 1, fabricator.isOpen));
+            NetworkInit.sendToServer(new ServerboundFabricatorStatePacket(pos, 1, true));
         }
         else
         {
             this.state = 1;
-            NetworkInit.sendToTracking(fabricator, new FabricatorUpdateStatePacket(pos, 1));
+
+            fabricator.isOpen = true;
+            NetworkInit.sendToTracking(fabricator, new FabricatorUpdateStatePacket(pos, 1, true));
         }
     }
 
@@ -151,7 +155,8 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
         else
         {
             this.state = 0;
-            NetworkInit.sendToTracking(fabricator, new FabricatorUpdateStatePacket(pos, 0));
+            fabricator.isOpen = false;
+            NetworkInit.sendToTracking(fabricator, new FabricatorUpdateStatePacket(pos, 0, false));
         }
     }
 
@@ -163,12 +168,12 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
         {
             state = 3;
             NetworkInit.sendToServer(new ServerboundSoundPacket(pos, SoundInit.FABRICATOR_FABRICATE.get()));
-            NetworkInit.sendToServer(new ServerboundFabricatorStatePacket(pos, 3, fabricator.isOpen));
+            NetworkInit.sendToServer(new ServerboundFabricatorStatePacket(pos, 3, this.isOpen));
         }
         else
         {
             this.state = 3;
-            NetworkInit.sendToTracking(fabricator, new FabricatorUpdateStatePacket(pos, 3));
+            NetworkInit.sendToTracking(fabricator, new FabricatorUpdateStatePacket(pos, 3, this.isOpen));
         }
     }
 
@@ -205,6 +210,7 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
                 this.fabricationStep = 0;
                 this.fabricationCounter = -1;
                 this.state = 4;
+                NetworkInit.sendToServer(new ServerboundFabricatorStatePacket(this.getBlockPos(), 4, this.isOpen));
                 NetworkInit.sendToServer(new FabricatorCraftItemPacket(this.craftStack, this.getBlockPos()));
                 this.craftStack = ItemStack.EMPTY;
             }

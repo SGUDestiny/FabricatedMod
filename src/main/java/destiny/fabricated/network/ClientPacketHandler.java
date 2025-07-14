@@ -15,6 +15,7 @@ public class ClientPacketHandler
         if(blockEntity instanceof FabricatorBlockEntity fabricator)
         {
             fabricator.state = packet.state;
+            fabricator.isOpen = packet.open;
             if(packet.state == 3)
                 fabricator.getLevel().playSound(Minecraft.getInstance().player, fabricator.getBlockPos(), SoundInit.FABRICATOR_FABRICATE.get(), SoundSource.BLOCKS);
         }

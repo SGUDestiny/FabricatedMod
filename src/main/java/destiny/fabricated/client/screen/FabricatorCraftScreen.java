@@ -153,9 +153,15 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
                 iO -= 3;
                 amountToScroll -= 3;
             }
-            if(scrollAmount > 3)
+            if(scrollAmount == 4)
             {
-                iO -= 3;
+                iO -= 4;
+                amountToScroll -= 4;
+            }
+
+            if(scrollAmount > 4)
+            {
+                iO -= 4;
                 amountToScroll -= 3;
             }
 
@@ -167,12 +173,14 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
                 iO++;
 
                 float alpha = 1F;
-                if(scrollAmount == 2)
+                if(scrollAmount == 3)
                     recipeListSize = 8;
-                if(scrollAmount == 1)
+                if(scrollAmount == 2)
                     recipeListSize = 7;
-                if(scrollAmount == 0)
+                if(scrollAmount == 1)
                     recipeListSize = 6;
+                if(scrollAmount == 0)
+                    recipeListSize = 5;
 
                 if(i == baseI && scrollAmount >= 3)
                 {
@@ -226,7 +234,6 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
                             {
                                 graphics.renderTooltip(Minecraft.getInstance().font, List.of(stack.getHoverName()), Optional.of(new RecipeTooltipComponent(recipe)) ,pMouseX, pMouseY);
                             }
-
 
                         pose.translate(x, y, 0);
 

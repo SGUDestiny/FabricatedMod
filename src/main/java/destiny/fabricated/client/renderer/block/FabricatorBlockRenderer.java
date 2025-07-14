@@ -1,5 +1,6 @@
 package destiny.fabricated.client.renderer.block;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
@@ -11,6 +12,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import org.joml.Math;
 import org.joml.Quaternionf;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.renderer.GeoBlockRenderer;
@@ -59,7 +61,11 @@ public class FabricatorBlockRenderer extends GeoBlockRenderer<FabricatorBlockEnt
         else poseStack.translate(0, 0.05, 0);
 
         poseStack.scale(0.25f, 0.25f, 0.25f);
+
         this.itemRenderer.renderStatic(fabricator.craftStack, ItemDisplayContext.FIXED, packedLight, packedOverlay, poseStack, bufferSource, fabricator.getLevel(), 0);
+
         poseStack.popPose();
+
+
     }
 }

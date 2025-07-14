@@ -55,13 +55,18 @@ public class FabricatorBlock extends BaseEntityBlock implements SimpleWaterlogge
     public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
         if (pLevel.getBlockEntity(pPos) instanceof FabricatorBlockEntity fabricator)
         {
+            if(fabricator.isOpen)
+                return InteractionResult.PASS;
+
             if (pPlayer.getMainHandItem().getItem() == Items.STICK)
             {
                 fabricator.openUpgradesMenu(pPlayer, pLevel, pPos, fabricator);
+                return InteractionResult.SUCCESS;
             }
             else if(!fabricator.getRecipeTypes().isEmpty())
             {
                 fabricator.openCraftingMenu(pPlayer, pLevel, pPos, fabricator);
+                return InteractionResult.SUCCESS;
             }
         }
 
