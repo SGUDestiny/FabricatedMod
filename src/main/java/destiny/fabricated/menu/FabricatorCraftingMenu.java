@@ -5,6 +5,7 @@ import destiny.fabricated.init.BlockInit;
 import destiny.fabricated.init.MenuInit;
 import destiny.fabricated.items.FabricatorModuleItem;
 import destiny.fabricated.items.FabricatorRecipeModuleItem;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.Container;
@@ -40,6 +41,11 @@ public class FabricatorCraftingMenu extends AbstractContainerMenu
         this.blockEntity = ((FabricatorBlockEntity) blockEntity);
         this.level = inventory.player.level();
         this.recipeTypes = ((FabricatorBlockEntity) blockEntity).getRecipeTypes();
+
+        for (int i = 0; i < 9; ++i)
+        {
+            this.addSlot(new Slot(inventory, i, -10000, 0));
+        }
     }
 
     @Override
