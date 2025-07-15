@@ -235,9 +235,9 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
                         if(i == baseI+recipeListSize-5)
                         {
                             pose.pushPose();
-                            pose.translate(22/0.07f, 0, 0);
-                            pose.scale(10f, 10f, 10f);
-                            RenderBlitUtil.blit(ARROW_SELECT_TEXTURE, pose, 0, 0, 0, 0, 256, 256);
+                            pose.translate(20/(0.07f), 5/0.07f, 0);
+                            pose.scale(1/0.07f, 1/0.07f, 1/0.07f);
+                            RenderBlitUtil.blit(ARROW_SELECT_TEXTURE, pose, 0, 0, 0, 0, 10, 8, 10, 8);
                             pose.popPose();
                         }
 
