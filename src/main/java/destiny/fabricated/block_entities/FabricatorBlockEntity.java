@@ -1,5 +1,6 @@
 package destiny.fabricated.block_entities;
 
+import destiny.fabricated.client.screen.FabricatorCraftScreen;
 import destiny.fabricated.init.BlockEntityInit;
 import destiny.fabricated.init.NetworkInit;
 import destiny.fabricated.init.SoundInit;
@@ -11,6 +12,7 @@ import destiny.fabricated.network.packets.FabricatorCraftItemPacket;
 import destiny.fabricated.network.packets.FabricatorUpdateStatePacket;
 import destiny.fabricated.network.packets.ServerboundFabricatorStatePacket;
 import destiny.fabricated.network.packets.ServerboundSoundPacket;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.chat.report.ReportEnvironment;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -109,6 +111,8 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
         this.upgrades.deserializeNBT(tag.getCompound("upgrades"));
         this.isOpen = tag.getBoolean("is_open");
         this.state = tag.getInt("state");
+
+        this.isOpen = false;
     }
 
     public List<RecipeData> getRecipeTypes()

@@ -7,6 +7,7 @@ import destiny.fabricated.init.SoundInit;
 import destiny.fabricated.items.FabricatorRecipeModuleItem.RecipeData;
 import destiny.fabricated.menu.FabricatorCraftingMenu;
 import destiny.fabricated.tooltip.RecipeTooltipComponent;
+import destiny.fabricated.util.ItemRenderUtil;
 import destiny.fabricated.util.RenderBlitUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -14,6 +15,8 @@ import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
@@ -21,6 +24,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -31,9 +35,10 @@ import java.util.stream.Collectors;
 public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCraftingMenu>
 {
     public static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(FabricatedMod.MODID, "textures/gui/fabricator_icon_bg.png");
-    public static final ResourceLocation ARROW_UP_TEXTURE = ResourceLocation.fromNamespaceAndPath(FabricatedMod.MODID, "textures/gui/fabricator_arrow_up.png");
-    public static final ResourceLocation ARROW_DOWN_TEXTURE = ResourceLocation.fromNamespaceAndPath(FabricatedMod.MODID, "textures/gui/fabricator_arrow_down.png");
+    public static final ResourceLocation ARROW_SELECT_TEXTURE = ResourceLocation.fromNamespaceAndPath(FabricatedMod.MODID, "textures/gui/fabricator_selector_arrow.png");
+
     public List<Recipe<Container>> recipes;
+    public RecipeType<?> selectedTypeKey;
     public int selectedRecipe;
     public boolean hasSelected;
     public int scrollAmount;
@@ -125,6 +130,8 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
 
         if(hasSelected)
         {
+            recipeStuff(selectedTypeKey);
+
             int baseI = 2;
             int iO = 3;
             int recipeI = -1;
@@ -225,6 +232,15 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
                         RenderSystem.setShaderColor(1f, 1f, 1f, alpha);
                         RenderBlitUtil.blit(TEXTURE, pose, 0, 0, 0, 0, 256, 256);
 
+                        if(i == baseI+recipeListSize-5)
+                        {
+                            pose.pushPose();
+                            pose.translate(22/0.07f, 0, 0);
+                            pose.scale(10f, 10f, 10f);
+                            RenderBlitUtil.blit(ARROW_SELECT_TEXTURE, pose, 0, 0, 0, 0, 256, 256);
+                            pose.popPose();
+                        }
+
                         RenderSystem.disableBlend();
                         RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
                         pose.popPose();
@@ -271,6 +287,7 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
             public void onPress()
             {
                 recipeStuff(ForgeRegistries.RECIPE_TYPES.getValue(data.getKey().location()));
+                selectedTypeKey = ForgeRegistries.RECIPE_TYPES.getValue(data.getKey().location());
                 selectedType = id;
                 hasSelected = true;
                 scrollAmount = 0;
@@ -300,15 +317,13 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
             @Override
             public void onPress()
             {
-                if(!hasSelected)
-                    return;
-                if(menu.blockEntity.state == 3)
-                    return;
-                if(recipes.isEmpty())
-                    return;
+                if (!hasSelected) return;
+                if (menu.blockEntity.state == 3) return;
+                if (recipes.isEmpty()) return;
 
                 ItemStack stackToCraft = recipes.get(scrollAmount).getResultItem(Minecraft.getInstance().level.registryAccess());
-                menu.blockEntity.fabricate(menu.level, menu.blockEntity.getBlockPos(), menu.blockEntity, stackToCraft, getItems(recipes.get(scrollAmount)));
+                if(hasRequiredItems(minecraft.player.getInventory(), getItems(recipes.get(scrollAmount))))
+                    menu.blockEntity.fabricate(menu.level, menu.blockEntity.getBlockPos(), menu.blockEntity, stackToCraft, getItems(recipes.get(scrollAmount)));
             }
 
             @Override
@@ -346,6 +361,8 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
                 scrollAmount = scrollAmount + id;
                 if(scrollAmount >= recipes.size())
                     scrollAmount = recipes.size()-1;
+                if(scrollAmount < 0)
+                    scrollAmount = 0;
             }
 
             @Override
@@ -421,6 +438,34 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
         }
 
         return result;
+    }
+
+    public static boolean hasRequiredItems(Inventory inventory, List<ItemStack> requiredItems) {
+        List<ItemStack> simulatedInventory = inventory.items.stream()
+                .map(ItemStack::copy)
+                .toList();
+
+        for (ItemStack required : requiredItems) {
+            if (required.isEmpty()) continue;
+
+            int remaining = required.getCount();
+
+            for (ItemStack invStack : simulatedInventory) {
+                if (!invStack.isEmpty() && ItemStack.isSameItemSameTags(invStack, required)) {
+                    int used = Math.min(remaining, invStack.getCount());
+                    remaining -= used;
+                    invStack.shrink(used);
+
+                    if (remaining <= 0) break;
+                }
+            }
+
+            if (remaining > 0) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     @Override
