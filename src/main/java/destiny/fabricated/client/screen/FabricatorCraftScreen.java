@@ -64,12 +64,14 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
         int baseX = (width - imageWidth) / 2;
         int baseY = (height - imageHeight) / 2 - this.menu.recipeTypes.size()*11+11;
 
-        for (int i = 0; i < this.menu.recipeTypes.size(); i++)
+        int i = 0;
+        for(RecipeData data : this.menu.recipeTypes)
         {
+            i++;
             int x = baseX+118;
             int y = baseY+(i*22)+120;
 
-            this.addWidget(this.createButton(i, x, y, 18, 18, this.menu.recipeTypes.get(i)));
+            this.addWidget(this.createButton(i, x, y, 18, 18, data));
         }
 
         {
@@ -78,14 +80,14 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
             this.addWidget(this.createCraftButton(4, x, y, 18, 18));
         }
 
-        for(int i = 0; i<10; i++)
+        for(int o = 0; o<10; o++)
         {
-            if(i == 4)
+            if(o == 4)
                 continue;
 
-            int y = baseY+(i*22)+(selectedType*22)+32;
+            int y = baseY+(o*22)+(selectedType*22)+32;
             int x = baseX+140;
-            this.addWidget(this.createScrollButton(i-4, x, y, 18, 18));
+            this.addWidget(this.createScrollButton(o-4, x, y, 18, 18));
         }
     }
 
@@ -103,12 +105,13 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
         int baseX = (width - imageWidth) / 2;
         int baseY = (height - imageHeight) / 2 - this.menu.recipeTypes.size()*11+11;
 
-        for (int i = 0; i < this.menu.recipeTypes.size(); i++)
+        int o = 0;
+        for(RecipeData data : this.menu.recipeTypes)
         {
+            o++;
             int x = baseX+118;
-            int y = baseY+(i*22)+120;
+            int y = baseY+(o*22)+120;
 
-            RecipeData data = this.menu.recipeTypes.get(i);
             pose.pushPose();
 
             if(pMouseX > x && pMouseX < x+18)
@@ -131,6 +134,10 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
         if(hasSelected)
         {
             recipeStuff(selectedTypeKey);
+            if(scrollAmount >= recipes.size())
+                scrollAmount = recipes.size()-1;
+            if(scrollAmount < 0)
+                scrollAmount = 0;
 
             int baseI = 2;
             int iO = 3;
@@ -321,9 +328,12 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
                 if (menu.blockEntity.state == 3) return;
                 if (recipes.isEmpty()) return;
 
+                List<Ingredient> ingredients = recipes.get(scrollAmount).getIngredients();
+                Inventory inventory = minecraft.player.getInventory();
+
                 ItemStack stackToCraft = recipes.get(scrollAmount).getResultItem(Minecraft.getInstance().level.registryAccess());
-                if(hasRequiredItems(minecraft.player.getInventory(), getItems(recipes.get(scrollAmount))))
-                    menu.blockEntity.fabricate(menu.level, menu.blockEntity.getBlockPos(), menu.blockEntity, stackToCraft, getItems(recipes.get(scrollAmount)));
+                if(hasRequiredItems(minecraft.player.getInventory(), fancyGetItems(inventory, ingredients)))
+                    menu.blockEntity.fabricate(menu.level, menu.blockEntity.getBlockPos(), menu.blockEntity, stackToCraft, fancyGetItems(inventory, ingredients));
             }
 
             @Override
@@ -507,5 +517,51 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
         return result;
     }
 
+    public static List<ItemStack> fancyGetItems(Inventory inventory, List<Ingredient> ingredients) {
+        List<ItemStack> result = new ArrayList<>();
+
+        for (Ingredient ingredient : ingredients) {
+            if (ingredient.isEmpty()) continue;
+
+            boolean matched = false;
+
+            for (int i = 0; i < inventory.getContainerSize(); i++) {
+                ItemStack invStack = inventory.getItem(i);
+
+                if (!invStack.isEmpty() && ingredient.test(invStack)) {
+                    ItemStack copy = invStack.copy();
+                    copy.setCount(1);
+                    result.add(copy);
+                    matched = true;
+                    break;
+                }
+            }
+
+            if (!matched)
+                continue;
+        }
+
+        Map<ItemStack, Integer> combined = new HashMap<>();
+
+        outer:
+        for (ItemStack stack : result) {
+            for (ItemStack key : combined.keySet()) {
+                if (ItemStack.isSameItemSameTags(key, stack)) {
+                    combined.put(key, combined.get(key) + 1);
+                    continue outer;
+                }
+            }
+            combined.put(stack.copyWithCount(1), 1);
+        }
+
+        List<ItemStack> combinedResult = new ArrayList<>();
+        for (Map.Entry<ItemStack, Integer> entry : combined.entrySet()) {
+            ItemStack stack = entry.getKey().copy();
+            stack.setCount(entry.getValue());
+            combinedResult.add(stack);
+        }
+
+        return combinedResult;
+    }
 
 }

@@ -4,6 +4,7 @@ import destiny.fabricated.client.screen.FabricatorCraftScreen;
 import destiny.fabricated.init.BlockEntityInit;
 import destiny.fabricated.init.NetworkInit;
 import destiny.fabricated.init.SoundInit;
+import destiny.fabricated.items.FabricatorBulkModuleItem;
 import destiny.fabricated.items.FabricatorRecipeModuleItem;
 import destiny.fabricated.items.FabricatorRecipeModuleItem.RecipeData;
 import destiny.fabricated.menu.FabricatorCraftingMenu;
@@ -34,6 +35,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.network.NetworkHooks;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoBlockEntity;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
@@ -45,7 +47,9 @@ import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
 {
@@ -100,8 +104,8 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
     {
         super.saveAdditional(tag);
         tag.put("upgrades", upgrades.serializeNBT());
-        tag.putBoolean("is_open", isOpen);
-        tag.putInt("state", this.state);
+        //tag.putBoolean("is_open", isOpen);
+        //tag.putInt("state", this.state);
     }
 
     @Override
@@ -109,15 +113,16 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
     {
         super.load(tag);
         this.upgrades.deserializeNBT(tag.getCompound("upgrades"));
-        this.isOpen = tag.getBoolean("is_open");
-        this.state = tag.getInt("state");
+        //this.isOpen = tag.getBoolean("is_open");
+        //this.state = tag.getInt("state");
 
         this.isOpen = false;
+        this.state = 2;
     }
 
-    public List<RecipeData> getRecipeTypes()
+    public Set<RecipeData> getRecipeTypes()
     {
-        List<RecipeData> recipeTypes = new ArrayList<>();
+        Set<RecipeData> recipeTypes = new HashSet<>();
         for (int i = 0; i < this.upgrades.getSlots(); i++)
         {
             ItemStack stack = this.upgrades.getStackInSlot(i);
@@ -285,6 +290,17 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
             protected void onContentsChanged(int slot)
             {
                 markUpdated();
+            }
+
+            @Override
+            public boolean isItemValid(int slot, @NotNull ItemStack stack)
+            {
+                if(stack.getItem() instanceof FabricatorBulkModuleItem || stack.getItem() instanceof FabricatorRecipeModuleItem)
+                {
+                    return this.stacks.stream().noneMatch(module -> module.getItem() instanceof FabricatorBulkModuleItem) || !(stack.getItem() instanceof FabricatorBulkModuleItem);
+                }
+
+                return false;
             }
         };
     }

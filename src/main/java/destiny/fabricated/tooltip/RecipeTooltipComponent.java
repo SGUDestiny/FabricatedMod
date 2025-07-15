@@ -1,5 +1,6 @@
 package destiny.fabricated.tooltip;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.CraftingScreen;
@@ -7,6 +8,7 @@ import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent
 import net.minecraft.client.gui.screens.recipebook.GhostRecipe;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -36,39 +38,61 @@ public class RecipeTooltipComponent implements ClientTooltipComponent, TooltipCo
     @Override
     public void renderImage(Font font, int pX, int pY, GuiGraphics graphics)
     {
-        for (int i = 0; i < getItems().size(); i++)
+        List<ItemStack> items = getItems(Minecraft.getInstance().player.getInventory(), recipe.getIngredients());
+        for (int i = 0; i < items.size(); i++)
         {
-            Item item = getItems().keySet().stream().toList().get(i);
-            int count = getItems().get(item);
-
-            ItemStack stack = new ItemStack(item, count);
+            ItemStack stack = items.get(i);
 
             graphics.renderItem(stack, pX+(18*i), pY);
             graphics.renderItemDecorations(font, stack, pX+(18*i), pY);
         }
     }
 
-    public HashMap<Item, Integer> getItems()
-    {
-        HashMap<Item, Integer> map = new HashMap<>();
-        for(ItemStack stack : items)
-        {
-            if(stack.isEmpty())
-                continue;
+    public static List<ItemStack> getItems(Inventory inventory, List<Ingredient> ingredients) {
+        List<ItemStack> result = new ArrayList<>();
 
-            boolean merged = false;
-            for(Item key : map.keySet())
-                if(stack.is(key))
-                {
-                    map.put(key, map.get(key) + stack.getCount());
-                    merged = true;
+        for (Ingredient ingredient : ingredients) {
+            if (ingredient.isEmpty()) continue;
+
+            boolean matched = false;
+
+            for (int i = 0; i < inventory.getContainerSize(); i++) {
+                ItemStack invStack = inventory.getItem(i);
+
+                if (!invStack.isEmpty() && ingredient.test(invStack)) {
+                    ItemStack copy = invStack.copy();
+                    copy.setCount(1);
+                    result.add(copy);
+                    matched = true;
                     break;
                 }
-            if(!merged)
-                map.put(stack.getItem(), stack.getCount());
+            }
+
+            if (!matched)
+                continue;
         }
 
-        return map;
+        Map<ItemStack, Integer> combined = new HashMap<>();
+
+        outer:
+        for (ItemStack stack : result) {
+            for (ItemStack key : combined.keySet()) {
+                if (ItemStack.isSameItemSameTags(key, stack)) {
+                    combined.put(key, combined.get(key) + 1);
+                    continue outer;
+                }
+            }
+            combined.put(stack.copyWithCount(1), 1);
+        }
+
+        List<ItemStack> combinedResult = new ArrayList<>();
+        for (Map.Entry<ItemStack, Integer> entry : combined.entrySet()) {
+            ItemStack stack = entry.getKey().copy();
+            stack.setCount(entry.getValue());
+            combinedResult.add(stack);
+        }
+
+        return combinedResult;
     }
 
 
@@ -81,6 +105,6 @@ public class RecipeTooltipComponent implements ClientTooltipComponent, TooltipCo
     @Override
     public int getWidth(Font pFont)
     {
-        return 18*getItems().size();
+        return 18*getItems(Minecraft.getInstance().player.getInventory(), recipe.getIngredients()).size();
     }
 }

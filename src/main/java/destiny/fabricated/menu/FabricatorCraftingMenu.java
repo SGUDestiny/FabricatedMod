@@ -22,13 +22,15 @@ import net.minecraftforge.items.SlotItemHandler;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class FabricatorCraftingMenu extends AbstractContainerMenu
 {
     public FabricatorBlockEntity blockEntity;
     public Level level;
-    public List<FabricatorRecipeModuleItem.RecipeData> recipeTypes;
+    public Set<FabricatorRecipeModuleItem.RecipeData> recipeTypes;
 
     public FabricatorCraftingMenu(int containerId, Inventory inventory, FriendlyByteBuf buffer)
     {
