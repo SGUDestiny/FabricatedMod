@@ -9,6 +9,17 @@
 
   "message.fabricated.fabricator_no_modules": "Unable to open: No recipe modules detected",
 
+  "advancement.fabricated.root.title": "Fabricated",
+  "advancement.fabricated.root.description": "Convenient and efficient crafting brought to you by Alterra Corporation",
+  "advancement.fabricated.fabricator.title": "The Power Of Craft...",
+  "advancement.fabricated.fabricator.description": "Craft a Fabricator, an all-in-one crafting station",
+  "advancement.fabricated.fabricator_recipe_module.title": "...In The Palm Of My Hand",
+  "advancement.fabricated.fabricator_recipe_module.description": "Craft a Recipe Module for your Fabricator",
+  "advancement.fabricated.fabricator_bulk_module_1.title": "Rookie Numbers",
+  "advancement.fabricated.fabricator_bulk_module_1.description": "Craft a Bulk Module for your Fabricator",
+  "advancement.fabricated.fabricator_bulk_module_3.title": "INFINITE POWER!!!",
+  "advancement.fabricated.fabricator_bulk_module_3.description": "Upgrade to a Bulk Module 3",
+
   "sound.fabricated.fabricator_open": "Fabricator opens",
   "sound.fabricated.fabricator_close": "Fabricator closes",
   "sound.fabricated.fabricator_fabricate": "Fabricator constructs"

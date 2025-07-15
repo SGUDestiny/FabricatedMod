@@ -1,0 +1,38 @@
+{
+  "display": {
+    "icon": {
+      "item": "fabricated:fabricator_recipe_module"
+    },
+    "title": {
+      "translate": "advancement.fabricated.fabricator_recipe_module.title"
+    },
+    "description": {
+      "translate": "advancement.fabricated.fabricator_recipe_module.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "parent": "fabricated:fabricator",
+  "criteria": {
+    "fabricator_recipe_module": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "fabricated:fabricator_recipe_module"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "fabricator_recipe_module"
+    ]
+  ],
+  "sends_telemetry_event": false
+}

@@ -1,0 +1,38 @@
+{
+  "display": {
+    "icon": {
+      "item": "fabricated:fabricator_bulk_module_3"
+    },
+    "title": {
+      "translate": "advancement.fabricated.fabricator_bulk_module_3.title"
+    },
+    "description": {
+      "translate": "advancement.fabricated.fabricator_bulk_module_3.description"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "parent": "fabricated:bulk_module_1",
+  "criteria": {
+    "fabricator_bulk_module_3": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "fabricated:fabricator_bulk_module_3"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "fabricator_bulk_module_3"
+    ]
+  ],
+  "sends_telemetry_event": false
+}
