@@ -304,6 +304,8 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
                     return;
                 if(menu.blockEntity.state == 3)
                     return;
+                if(recipes.isEmpty())
+                    return;
 
                 ItemStack stackToCraft = recipes.get(scrollAmount).getResultItem(Minecraft.getInstance().level.registryAccess());
                 menu.blockEntity.fabricate(menu.level, menu.blockEntity.getBlockPos(), menu.blockEntity, stackToCraft, getItems(recipes.get(scrollAmount)));
@@ -330,6 +332,8 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
             public void onPress()
             {
                 if(!hasSelected)
+                    return;
+                if(recipes.isEmpty())
                     return;
 
                 if(id == -1 && scrollAmount < 1)
