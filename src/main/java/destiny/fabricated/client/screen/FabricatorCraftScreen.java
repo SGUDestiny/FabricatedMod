@@ -2,41 +2,29 @@ package destiny.fabricated.client.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
-import com.mojang.datafixers.util.Pair;
 import destiny.fabricated.FabricatedMod;
-import destiny.fabricated.init.NetworkInit;
 import destiny.fabricated.init.SoundInit;
 import destiny.fabricated.items.FabricatorRecipeModuleItem.RecipeData;
 import destiny.fabricated.menu.FabricatorCraftingMenu;
-import destiny.fabricated.network.packets.FabricatorCraftItemPacket;
 import destiny.fabricated.tooltip.RecipeTooltipComponent;
 import destiny.fabricated.util.RenderBlitUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
-import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.sounds.SoundManager;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.*;
 import net.minecraftforge.registries.ForgeRegistries;
-import org.joml.Matrix4f;
 
-import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -45,7 +33,7 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
     public static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(FabricatedMod.MODID, "textures/gui/fabricator_icon_bg.png");
     public static final ResourceLocation ARROW_UP_TEXTURE = ResourceLocation.fromNamespaceAndPath(FabricatedMod.MODID, "textures/gui/fabricator_arrow_up.png");
     public static final ResourceLocation ARROW_DOWN_TEXTURE = ResourceLocation.fromNamespaceAndPath(FabricatedMod.MODID, "textures/gui/fabricator_arrow_down.png");
-    public List<Map.Entry<Item, List<Recipe<Container>>>> recipes;
+    public List<Recipe<Container>> recipes;
     public int selectedRecipe;
     public boolean hasSelected;
     public int scrollAmount;
@@ -99,6 +87,9 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
     @Override
     protected void renderBg(GuiGraphics graphics, float pPartialTick, int pMouseX, int pMouseY)
     {
+        if(menu.blockEntity.state == 3)
+            return;
+
         PoseStack pose = graphics.pose();
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
@@ -153,16 +144,10 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
                 iO -= 3;
                 amountToScroll -= 3;
             }
-            if(scrollAmount == 4)
+            if(scrollAmount >= 4)
             {
                 iO -= 4;
                 amountToScroll -= 4;
-            }
-
-            if(scrollAmount > 4)
-            {
-                iO -= 4;
-                amountToScroll -= 3;
             }
 
             int recipeListSize = 9;
@@ -217,9 +202,7 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
 
                 try
                 {
-
-                    Map.Entry<Item, List<Recipe<Container>>> items = recipes.get(recipeI+(amountToScroll));
-                    Recipe<Container> recipe = items.getValue().get(0);
+                    Recipe<Container> recipe = recipes.get(recipeI+amountToScroll);
                     if(recipe != null)
                     {
                         int x = baseX+140;
@@ -231,9 +214,7 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
                         pose.pushPose();
                         if(pMouseX > x && pMouseX < x+18)
                             if(pMouseY > y && pMouseY < y+18)
-                            {
                                 graphics.renderTooltip(Minecraft.getInstance().font, List.of(stack.getHoverName()), Optional.of(new RecipeTooltipComponent(recipe)) ,pMouseX, pMouseY);
-                            }
 
                         pose.translate(x, y, 0);
 
@@ -321,9 +302,11 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
             {
                 if(!hasSelected)
                     return;
+                if(menu.blockEntity.state == 3)
+                    return;
 
-                ItemStack stackToCraft = recipes.get(scrollAmount).getValue().get(0).getResultItem(Minecraft.getInstance().level.registryAccess());
-                menu.blockEntity.fabricate(menu.level, menu.blockEntity.getBlockPos(), menu.blockEntity, stackToCraft);
+                ItemStack stackToCraft = recipes.get(scrollAmount).getResultItem(Minecraft.getInstance().level.registryAccess());
+                menu.blockEntity.fabricate(menu.level, menu.blockEntity.getBlockPos(), menu.blockEntity, stackToCraft, getItems(recipes.get(scrollAmount)));
             }
 
             @Override
@@ -357,6 +340,8 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
                     return;
 
                 scrollAmount = scrollAmount + id;
+                if(scrollAmount >= recipes.size())
+                    scrollAmount = recipes.size()-1;
             }
 
             @Override
@@ -373,9 +358,105 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
 
         List<Recipe<Container>> recipes = recipeManager.getAllRecipesFor(((RecipeType<Recipe<Container>>) recipeType));
 
-        Map<Item, List<Recipe<Container>>> recipeList = recipes.stream().collect(Collectors.groupingBy(recipe -> recipe.getResultItem(Minecraft.getInstance().level.registryAccess()).getItem()));
-        this.recipes = recipeList.entrySet().stream().sorted(Comparator.comparing(entry -> entry.getKey().getDefaultInstance().getDisplayName().getString())).toList();
+        this.recipes = recipes.stream().sorted(Comparator.comparing(recipe -> recipe.getResultItem(Minecraft.getInstance().level.registryAccess()).getDisplayName().getString())).toList();
+        this.recipes = this.recipes.stream().filter(entry -> !entry.getResultItem(Minecraft.getInstance().level.registryAccess()).isEmpty()).toList();
+        this.recipes = this.recipes.stream().filter(entry -> !(entry.isSpecial())).toList();
 
-        this.recipes = this.recipes.stream().filter(entry -> entry.getKey() != Items.AIR).toList();
+        this.recipes = filterCraftableRecipes(this.recipes, minecraft.player.getInventory());
     }
+
+    public static List<Recipe<Container>> filterCraftableRecipes(List<Recipe<Container>> recipes, Inventory playerInventory) {
+        List<ItemStack> inventoryStacks = new ArrayList<>();
+
+        for (int i = 0; i < playerInventory.getContainerSize(); i++) {
+            ItemStack stack = playerInventory.getItem(i);
+            if (!stack.isEmpty()) {
+                inventoryStacks.add(stack.copy());
+            }
+        }
+
+        List<Recipe<Container>> result = new ArrayList<>();
+        for (Recipe<Container> recipe : recipes) {
+
+            List<Ingredient> ingredients = recipe.getIngredients();
+
+            Map<Ingredient, Integer> ingredientCounts = new HashMap<>();
+            for (Ingredient ingredient : ingredients)
+                if (!ingredient.isEmpty()) {
+                    ingredientCounts.merge(ingredient, 1, Integer::sum);
+                }
+
+            List<ItemStack> available = inventoryStacks.stream().map(ItemStack::copy).collect(Collectors.toList());
+
+            boolean canCraft = true;
+            for (Map.Entry<Ingredient, Integer> entry : ingredientCounts.entrySet())
+            {
+                Ingredient ingredient = entry.getKey();
+                int neededCount = entry.getValue();
+
+                int availableCount = 0;
+
+                for (ItemStack stack : available)
+                    if (ingredient.test(stack))
+                    {
+                        int use = Math.min(neededCount - availableCount, stack.getCount());
+                        availableCount += use;
+                        if (availableCount >= neededCount) break;
+                    }
+
+                if (availableCount < neededCount)
+                {
+                    canCraft = false;
+                    break;
+                }
+            }
+
+            if (canCraft) {
+                result.add(recipe);
+            }
+        }
+
+        return result;
+    }
+
+    @Override
+    public boolean isPauseScreen()
+    {
+        return false;
+    }
+
+    public List<ItemStack> getItems(Recipe<Container> recipe)
+    {
+        List<ItemStack> items = new ArrayList<>();
+        recipe.getIngredients().forEach(ingredient ->
+        {
+            ItemStack stack = ingredient.getItems().length == 0 ? ItemStack.EMPTY :  ingredient.getItems()[0];
+            items.add(stack);
+        });
+
+        HashMap<Item, Integer> map = new HashMap<>();
+        for(ItemStack stack : items)
+        {
+            if(stack.isEmpty())
+                continue;
+
+            boolean merged = false;
+            for(Item key : map.keySet())
+                if(stack.is(key))
+                {
+                    map.put(key, map.get(key) + stack.getCount());
+                    merged = true;
+                    break;
+                }
+            if(!merged)
+                map.put(stack.getItem(), stack.getCount());
+        }
+
+        List<ItemStack> result = new ArrayList<>();
+        map.forEach((item, count) -> result.add(new ItemStack(item, count)));
+
+        return result;
+    }
+
+
 }

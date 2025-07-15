@@ -65,6 +65,7 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
 
     public ItemStackHandler upgrades = createHandler(6);
     public ItemStack craftStack = ItemStack.EMPTY;
+    public List<ItemStack> ingredients = new ArrayList<>();
     public boolean isOpen = false;
 
     public int state = 2;
@@ -160,10 +161,11 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
         }
     }
 
-    public void fabricate(Level level, BlockPos pos, FabricatorBlockEntity fabricator, ItemStack stack)
+    public void fabricate(Level level, BlockPos pos, FabricatorBlockEntity fabricator, ItemStack stack, List<ItemStack> ingredients)
     {
 
         this.craftStack = stack;
+        this.ingredients = ingredients;
         if(level.isClientSide())
         {
             state = 3;
@@ -211,7 +213,7 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
                 this.fabricationCounter = -1;
                 this.state = 4;
                 NetworkInit.sendToServer(new ServerboundFabricatorStatePacket(this.getBlockPos(), 4, this.isOpen));
-                NetworkInit.sendToServer(new FabricatorCraftItemPacket(this.craftStack, this.getBlockPos()));
+                NetworkInit.sendToServer(new FabricatorCraftItemPacket(this.craftStack, this.ingredients, this.getBlockPos()));
                 this.craftStack = ItemStack.EMPTY;
             }
         });

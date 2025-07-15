@@ -7,31 +7,37 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.network.NetworkEvent;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Supplier;
 
 public class FabricatorCraftItemPacket
 {
-    public ItemStack stack;
+    public ItemStack result;
+    public List<ItemStack> ingredients;
     public BlockPos pos;
 
-    public FabricatorCraftItemPacket(ItemStack item, BlockPos pos)
+    public FabricatorCraftItemPacket(ItemStack item, List<ItemStack> ingredients, BlockPos pos)
     {
-        this.stack = item;
+        this.result = item;
+        this.ingredients = ingredients;
         this.pos = pos;
     }
 
     public static void write(FabricatorCraftItemPacket packet, FriendlyByteBuf buffer)
     {
-        buffer.writeItem(packet.stack);
+        buffer.writeItem(packet.result);
+        buffer.writeCollection(packet.ingredients, FriendlyByteBuf::writeItem);
         buffer.writeBlockPos(packet.pos);
     }
 
     public static FabricatorCraftItemPacket read(FriendlyByteBuf buffer)
     {
         ItemStack stack = buffer.readItem();
+        List<ItemStack> ingredients = buffer.readCollection(ArrayList::new, FriendlyByteBuf::readItem);
         BlockPos pos = buffer.readBlockPos();
 
-        return new FabricatorCraftItemPacket(stack, pos);
+        return new FabricatorCraftItemPacket(stack, ingredients, pos);
     }
 
     public static void handle(FabricatorCraftItemPacket packet, Supplier<NetworkEvent.Context> context)

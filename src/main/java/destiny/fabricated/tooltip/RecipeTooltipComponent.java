@@ -81,6 +81,6 @@ public class RecipeTooltipComponent implements ClientTooltipComponent, TooltipCo
     @Override
     public int getWidth(Font pFont)
     {
-        return 18*recipe.getIngredients().size();
+        return 18*getItems().size();
     }
 }
