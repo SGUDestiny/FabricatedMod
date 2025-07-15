@@ -1,5 +1,6 @@
 {
   "block.fabricated.fabricator": "Fabricator",
+  "block.fabricated.fabricator.description": "Hold crouch button to open Upgrades Menu",
 
   "item.fabricated.fabricator_recipe_module": "Fabricator Recipe Module",
   "item.fabricated.fabricator_bulk_module_1": "Fabricator Batch Module 1",

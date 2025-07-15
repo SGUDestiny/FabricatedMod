@@ -7,10 +7,13 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -30,6 +33,7 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
 public class FabricatorBlock extends BaseEntityBlock implements SimpleWaterloggedBlock, EntityBlock {
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
@@ -48,7 +52,8 @@ public class FabricatorBlock extends BaseEntityBlock implements SimpleWaterlogge
             Block.box(0, -1, 1, 3, 17, 15)
     );
 
-    public FabricatorBlock(Properties pProperties) {
+    public FabricatorBlock(Properties pProperties)
+    {
         super(pProperties);
         this.registerDefaultState(this.defaultBlockState().setValue(FACING, Direction.NORTH).setValue(WATERLOGGED, false));
     }
@@ -87,7 +92,8 @@ public class FabricatorBlock extends BaseEntityBlock implements SimpleWaterlogge
     @Override
     public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext)
     {
-        switch (pState.getValue(FACING)) {
+        switch (pState.getValue(FACING))
+        {
             case NORTH:
                 return SHAPE_NORTH;
             case SOUTH:
@@ -112,7 +118,8 @@ public class FabricatorBlock extends BaseEntityBlock implements SimpleWaterlogge
     @Override
     public BlockState updateShape(BlockState pState, Direction pDirection, BlockState pNeighborState, LevelAccessor pLevel, BlockPos pPos, BlockPos pNeighborPos)
     {
-        if (!isOnBlock(pLevel, pPos, pState)) {
+        if (!isOnBlock(pLevel, pPos, pState))
+        {
             pLevel.destroyBlock(pPos, true);
         }
 
@@ -123,19 +130,30 @@ public class FabricatorBlock extends BaseEntityBlock implements SimpleWaterlogge
         return super.updateShape(pState, pDirection, pNeighborState, pLevel, pPos, pNeighborPos);
     }
 
-    public boolean isOnBlock(LevelAccessor pLevel, BlockPos pPos, BlockState pState) {
+    public boolean isOnBlock(LevelAccessor pLevel, BlockPos pPos, BlockState pState)
+    {
         Direction blockDirection = pState.getValue(FACING);
         Block parentBlock = pLevel.getBlockState(pPos.relative(blockDirection.getOpposite())).getBlock();
         return !parentBlock.equals(Blocks.AIR);
     }
 
+    @Override
+    public void appendHoverText(ItemStack pStack, @org.jetbrains.annotations.Nullable BlockGetter pLevel, List<Component> pTooltip, TooltipFlag pFlag)
+    {
+        MutableComponent efficiency = Component.translatable("block.fabricated.fabricator.description").withStyle(ChatFormatting.GRAY);
+
+        pTooltip.add(efficiency);
+    }
+
     @org.jetbrains.annotations.Nullable
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntity) {
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntity)
+    {
         return createTickerHelper(blockEntity, BlockEntityInit.FABRICATOR.get(), FabricatorBlockEntity::tick);
     }
 
     @Override
-    public @org.jetbrains.annotations.Nullable BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+    public @org.jetbrains.annotations.Nullable BlockEntity newBlockEntity(BlockPos pos, BlockState state)
+    {
         return BlockEntityInit.FABRICATOR.get().create(pos, state);
     }
 }
