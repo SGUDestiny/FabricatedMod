@@ -1,11 +1,12 @@
 {
   "block.fabricated.fabricator": "Fabricator",
 
-  "item.fabricated.fabricator_recipe_module": "Fabricator Crafting Station Module",
+  "item.fabricated.fabricator_recipe_module": "Fabricator Recipe Module",
   "item.fabricated.fabricator_bulk_module_1": "Fabricator Batch Module 1",
   "item.fabricated.fabricator_bulk_module_2": "Fabricator Batch Module 2",
   "item.fabricated.fabricator_bulk_module_3": "Fabricator Batch Module 3",
 
+  "message.fabricated.fabricator_no_modules": "Unable to open: No recipe modules detected",
 
   "sound.fabricated.fabricator_open": "Fabricator opens",
   "sound.fabricated.fabricator_close": "Fabricator closes",

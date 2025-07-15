@@ -3,8 +3,10 @@ package destiny.fabricated.blocks;
 import destiny.fabricated.block_entities.FabricatorBlockEntity;
 import destiny.fabricated.init.BlockEntityInit;
 import destiny.fabricated.util.MathUtil;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -67,6 +69,9 @@ public class FabricatorBlock extends BaseEntityBlock implements SimpleWaterlogge
             {
                 fabricator.openCraftingMenu(pPlayer, pLevel, pPos, fabricator);
                 return InteractionResult.SUCCESS;
+            }
+            else {
+                pPlayer.displayClientMessage(Component.translatable("message.fabricated.fabricator_no_modules").withStyle(ChatFormatting.RED), true);
             }
         }
 
