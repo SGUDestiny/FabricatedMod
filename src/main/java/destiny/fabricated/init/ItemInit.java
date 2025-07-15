@@ -22,6 +22,7 @@ public class ItemInit
     public static final RegistryObject<FabricatorBulkModuleItem> FABRICATOR_BULK_MODULE_2 = ITEMS.register("fabricator_bulk_module_2", () -> new FabricatorBulkModuleItem(new Item.Properties().stacksTo(1)));
     public static final RegistryObject<FabricatorBulkModuleItem> FABRICATOR_BULK_MODULE_3 = ITEMS.register("fabricator_bulk_module_3", () -> new FabricatorBulkModuleItem(new Item.Properties().stacksTo(1)));
 
+    public static final RegistryObject<Item> MOD_LOGO = ITEMS.register("mod_logo", () -> new Item(new Item.Properties()));
 
     public static void register(IEventBus bus)
     {

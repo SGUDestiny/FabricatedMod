@@ -1,0 +1,35 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "misc",
+  "key": {
+    "S": {
+      "item": "minecraft:echo_shard"
+    },
+    "I": {
+      "tag": "forge:ingots/iron"
+    },
+    "B": {
+      "tag": "forge:storage_blocks/iron"
+    },
+    "T": {
+      "item": "minecraft:iron_trapdoor"
+    },
+    "E": {
+      "item": "minecraft:ender_eye"
+    },
+    "G": {
+      "item": "minecraft:tinted_glass"
+    }
+  },
+  "pattern": [
+    "EGE",
+    "STS",
+    "IBI"
+  ],
+  "result": {
+    "item": "fabricated:fabricator",
+    "count": 1
+  },
+  "show_notification": true
+}

@@ -1,0 +1,38 @@
+{
+  "display": {
+    "icon": {
+      "item": "fabricated:fabricator"
+    },
+    "title": {
+      "translate": "advancement.fabricated.fabricator.title"
+    },
+    "description": {
+      "translate": "advancement.fabricated.fabricator.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "parent": "fabricated:root",
+  "criteria": {
+    "fabricator": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "fabricated:fabricator"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "fabricator"
+    ]
+  ],
+  "sends_telemetry_event": false
+}
