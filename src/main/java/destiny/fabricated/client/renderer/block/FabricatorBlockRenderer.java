@@ -58,12 +58,12 @@ public class FabricatorBlockRenderer extends GeoBlockRenderer<FabricatorBlockEnt
 
         if(!this.itemRenderer.getModel(fabricator.craftStack, fabricator.getLevel(), null, 0).isGui3d())
         {
-            poseStack.translate(0,0.01, 0);
+            poseStack.translate(0,0.02, 0);
             poseStack.mulPose(Axis.XP.rotationDegrees(90));
         }
-        else poseStack.translate(0, 0.05, 0);
+        else poseStack.translate(0, 0.125, 0);
 
-        poseStack.scale(0.25f, 0.25f, 0.25f);
+        poseStack.scale(0.5f, 0.5f, 0.5f);
 
         if(fabricator.fabricationStep == 2)
             this.itemRenderer.renderStatic(fabricator.craftStack, ItemDisplayContext.FIXED, packedLight, packedOverlay, poseStack, bufferSource, fabricator.getLevel(), 0);
