@@ -100,8 +100,6 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
     {
         super.saveAdditional(tag);
         tag.put("upgrades", upgrades.serializeNBT());
-        tag.putBoolean("is_open", isOpen);
-        tag.putInt("state", this.state);
     }
 
     @Override
@@ -109,9 +107,6 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
     {
         super.load(tag);
         this.upgrades.deserializeNBT(tag.getCompound("upgrades"));
-        this.isOpen = tag.getBoolean("is_open");
-        this.state = tag.getInt("state");
-
         this.isOpen = false;
     }
 
