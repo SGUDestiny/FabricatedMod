@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "misc",
+  "key": {
+    "C": {
+      "item": "minecraft:crafting_table"
+    },
+    "I": {
+      "tag": "forge:ingots/iron"
+    },
+    "G": {
+      "tag": "forge:ingots/gold"
+    },
+    "S": {
+      "item": "minecraft:netherite_scrap"
+    }
+  },
+  "pattern": [
+    "ISI",
+    "ICI",
+    "IGI"
+  ],
+  "result": {
+    "item": "fabricated:fabricator_recipe_module",
+    "nbt": "{recipe_types: [{name: '{\"text\":\"Crafting\"}', item: \"minecraft:crafting_table\", recipe_key: \"minecraft:crafting\"}]}",
+    "count": 1
+  },
+  "show_notification": true
+}

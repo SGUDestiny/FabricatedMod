@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "misc",
+  "key": {
+    "I": {
+      "tag": "forge:ingots/iron"
+    },
+    "G": {
+      "tag": "forge:ingots/gold"
+    },
+    "D": {
+      "tag": "forge:gems/diamond"
+    },
+    "E": {
+      "item": "minecraft:ender_eye"
+    }
+  },
+  "pattern": [
+    "IDI",
+    "IEI",
+    "IGI"
+  ],
+  "result": {
+    "item": "fabricated:fabricator_bulk_module_2",
+    "nbt": "{bulk_amount:32}",
+    "count": 1
+  },
+  "show_notification": true
+}

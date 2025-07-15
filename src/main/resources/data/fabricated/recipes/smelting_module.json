@@ -1,0 +1,36 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "misc",
+  "key": {
+    "F": {
+      "item": "minecraft:furnace"
+    },
+    "S": {
+      "item": "minecraft:smoker"
+    },
+    "B": {
+      "item": "minecraft:blast_furnace"
+    },
+    "I": {
+      "tag": "forge:ingots/iron"
+    },
+    "G": {
+      "tag": "forge:ingots/gold"
+    },
+    "N": {
+      "tag": "forge:ingots/netherite"
+    }
+  },
+  "pattern": [
+    "INI",
+    "SFB",
+    "IGI"
+  ],
+  "result": {
+    "item": "fabricated:fabricator_recipe_module",
+    "nbt": "{recipe_types: [{name: '{\"text\":\"Smelting\"}', item: \"minecraft:furnace\", recipe_key: \"minecraft:smelting\"}, {name: '{\"text\":\"Smoking\"}', item: \"minecraft:smoker\", recipe_key: \"minecraft:smoking\"}, {name: '{\"text\":\"Blasting\"}', item: \"minecraft:blast_furnace\", recipe_key: \"minecraft:blasting\"}]}",
+    "count": 1
+  },
+  "show_notification": true
+}
