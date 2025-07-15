@@ -129,7 +129,7 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
     public void open(Level level, BlockPos pos, FabricatorBlockEntity fabricator)
     {
         level.playSound(null, pos, SoundInit.FABRICATOR_OPEN.get(), SoundSource.BLOCKS);
-
+        setChanged();
         if(level.isClientSide())
         {
             state = 1;
@@ -147,7 +147,7 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
     public void close(Level level, BlockPos pos, FabricatorBlockEntity fabricator)
     {
         level.playSound(null, pos, SoundInit.FABRICATOR_CLOSE.get(), SoundSource.BLOCKS);
-
+        setChanged();
         if(level.isClientSide())
         {
             state = 0;
@@ -166,6 +166,7 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
 
         this.craftStack = stack;
         this.ingredients = ingredients;
+        setChanged();
         if(level.isClientSide())
         {
             state = 3;

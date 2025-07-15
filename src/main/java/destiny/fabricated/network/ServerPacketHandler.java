@@ -30,6 +30,7 @@ public class ServerPacketHandler
         {
             fabricator.state = packet.state;
             fabricator.isOpen = packet.isOpen;
+            fabricator.setChanged();
         }
     }
 
