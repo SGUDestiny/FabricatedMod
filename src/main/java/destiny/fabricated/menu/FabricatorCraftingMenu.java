@@ -30,11 +30,13 @@ public class FabricatorCraftingMenu extends AbstractContainerMenu
 {
     public FabricatorBlockEntity blockEntity;
     public Level level;
-    public Set<FabricatorRecipeModuleItem.RecipeData> recipeTypes;
+    public List<FabricatorRecipeModuleItem.RecipeData> recipeTypes;
+    public int item;
+    public int type;
 
     public FabricatorCraftingMenu(int containerId, Inventory inventory, FriendlyByteBuf buffer)
     {
-        this(containerId, inventory, inventory.player.level().getBlockEntity(buffer.readBlockPos()));
+        this(containerId, inventory, inventory.player.level().getBlockEntity(buffer.readBlockPos()), buffer.readInt(), buffer.readInt());
     }
 
     public FabricatorCraftingMenu(int pContainerId, Inventory inventory, BlockEntity blockEntity)
@@ -43,6 +45,23 @@ public class FabricatorCraftingMenu extends AbstractContainerMenu
         this.blockEntity = ((FabricatorBlockEntity) blockEntity);
         this.level = inventory.player.level();
         this.recipeTypes = ((FabricatorBlockEntity) blockEntity).getRecipeTypes();
+        this.type = -1;
+        this.item = 0;
+
+        for (int i = 0; i < 9; ++i)
+        {
+            this.addSlot(new Slot(inventory, i, -10000, 0));
+        }
+    }
+
+    public FabricatorCraftingMenu(int pContainerId, Inventory inventory, BlockEntity blockEntity, int type, int target)
+    {
+        super(MenuInit.FABRICATOR_CRAFTING.get(), pContainerId);
+        this.blockEntity = ((FabricatorBlockEntity) blockEntity);
+        this.level = inventory.player.level();
+        this.recipeTypes = ((FabricatorBlockEntity) blockEntity).getRecipeTypes();
+        this.type = type;
+        this.item = target;
 
         for (int i = 0; i < 9; ++i)
         {

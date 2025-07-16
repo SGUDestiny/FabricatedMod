@@ -33,6 +33,8 @@ import net.minecraftforge.registries.ForgeRegistries;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static destiny.fabricated.client.screen.FabricatorBrowserCraftScreen.filterCraftableRecipes;
+
 public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCraftingMenu>
 {
     public static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(FabricatedMod.MODID, "textures/gui/fabricator_icon_bg.png");
@@ -44,7 +46,6 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
 
     public List<Recipe<Container>> recipes;
     public RecipeType<?> selectedTypeKey;
-    public int selectedRecipe;
     public boolean hasSelected;
     public int scrollAmount;
     public int selectedType;
@@ -56,10 +57,16 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
         this.imageHeight = 256;
 
         this.recipes = new ArrayList<>();
-        this.hasSelected = false;
-        this.selectedType = -1;
-        this.selectedRecipe = 0;
-        this.scrollAmount = 0;
+        this.selectedType = pMenu.type;
+        this.scrollAmount = pMenu.item;
+
+        this.hasSelected = selectedType != -1;
+        if(this.hasSelected)
+        {
+            this.selectedTypeKey = ForgeRegistries.RECIPE_TYPES.getValue(menu.blockEntity.getRecipeTypes().get(selectedType).key.location());
+            selectedType += 1;
+            scrollAmount -= 1;
+        }
     }
 
     @Override
@@ -163,16 +170,22 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
 
         if(hasSelected)
         {
-            if(minecraft.level.getGameTime() % 10 == 0)
+            if(recipes.isEmpty())
             {
                 recipeStuff(selectedTypeKey);
+                return;
+            }
+            if(menu.blockEntity.fabricationStep == 2)
+                recipeStuff(selectedTypeKey);
+
+            if(minecraft.level.getGameTime() % 2 == 0)
+            {
                 if(menu.blockEntity.batchValue > menu.blockEntity.maxBatch())
                     menu.blockEntity.batchValue = menu.blockEntity.maxBatch();
 
                 int maxBatch = getMaxCraft(recipes.get(scrollAmount), minecraft.player.getInventory());
                 if(maxBatch < menu.blockEntity.batchValue)
                     menu.blockEntity.batchValue = maxBatch;
-
             }
 
             if(selectedType != -1)
@@ -209,7 +222,7 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
             int baseI = 2;
             int iO = 3;
             int recipeI = -1;
-            int amountToScroll = scrollAmount;
+            int amountToScroll = org.joml.Math.clamp(0, recipes.size(), scrollAmount);
             if(scrollAmount == 1)
             {
                 iO -= 1;
@@ -447,7 +460,7 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
             @Override
             public void onPress()
             {
-                ServerboundBrowserMenuPacket packet = new ServerboundBrowserMenuPacket(true, menu.blockEntity.getBlockPos());
+                ServerboundBrowserMenuPacket packet = new ServerboundBrowserMenuPacket(true, 0, 0, menu.blockEntity.getBlockPos());
                 NetworkInit.sendToServer(packet);
             }
 
@@ -511,7 +524,8 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
         this.recipes = recipes.stream().sorted(Comparator.comparing(recipe -> recipe.getResultItem(Minecraft.getInstance().level.registryAccess()).getDisplayName().getString())).toList();
         this.recipes = this.recipes.stream().filter(entry -> !entry.getResultItem(Minecraft.getInstance().level.registryAccess()).isEmpty()).toList();
         this.recipes = this.recipes.stream().filter(entry -> !(entry.isSpecial())).toList();
-        this.recipes = this.recipes.stream().filter(entry -> hasRequiredItems(minecraft.player.getInventory(), getItems(entry), 1)).toList();
+
+        this.recipes = filterCraftableRecipes(this.recipes, minecraft.player.getInventory());
     }
 
     public static int getMaxCraft(Recipe<?> recipe, Inventory playerInventory) {

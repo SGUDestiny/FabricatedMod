@@ -88,8 +88,24 @@ public class FabricatorBrowserCraftScreen extends AbstractContainerScreen<Fabric
 
         {
             int x = baseX+140;
-            int y = baseY+(this.menu.recipeTypes.size()*22)+252;
+            int y = baseY+(this.selectedType*22)+208;
             this.addWidget(this.createScrollButton(x, y, 10, 10, -1));
+
+            x += 13;
+            this.addWidget(this.createScrollButton(x, y, 10, 10, 1));
+        }
+
+        int o = 0;
+        for (int y = 0; y < 4; y++)
+        {
+            for (int x = 0; x < 6; x++)
+            {
+                o++;
+                int xO = baseX + x * 22 + 140;
+                int yO = baseY + (y * 22) + (selectedType * 22) + 120;
+
+                this.addWidget(this.createRecipeButton(xO, yO, 18, 18, o));
+            }
         }
 
     }
@@ -168,7 +184,7 @@ public class FabricatorBrowserCraftScreen extends AbstractContainerScreen<Fabric
             font.drawInBatch(String.valueOf(page), 0, 0, 0x5CB8FF, true, graphics.pose().last().pose(), graphics.bufferSource(), Font.DisplayMode.NORMAL, 0, LightTexture.FULL_BRIGHT);
             pose.popPose();
 
-            int recipeI = 0;
+            int recipeI = 24*page;
             for (int y = 0; y < 4; y++)
                 for (int x = 0; x < 6; x++)
                 {
@@ -194,15 +210,6 @@ public class FabricatorBrowserCraftScreen extends AbstractContainerScreen<Fabric
                         break;
                     }
                 }
-            
-            for (int i = 0; i < this.recipes.size(); i++)
-            {
-                Recipe<Container> recipe = recipes.get(i);
-                if(recipe != null)
-                {
-
-                }
-            }
         }
     }
 
@@ -257,7 +264,7 @@ public class FabricatorBrowserCraftScreen extends AbstractContainerScreen<Fabric
             @Override
             public void onPress()
             {
-                ServerboundBrowserMenuPacket packet = new ServerboundBrowserMenuPacket(false, menu.blockEntity.getBlockPos());
+                ServerboundBrowserMenuPacket packet = new ServerboundBrowserMenuPacket(false, 0, -1, menu.blockEntity.getBlockPos());
                 NetworkInit.sendToServer(packet);
             }
 
@@ -290,6 +297,32 @@ public class FabricatorBrowserCraftScreen extends AbstractContainerScreen<Fabric
                 page = page + increment;
                 if(page < 0)
                     page = 0;
+                if(page > getPageCount())
+                    page = getPageCount();
+            }
+
+            @Override
+            public void playDownSound(SoundManager pHandler)
+            {
+                pHandler.play(SimpleSoundInstance.forUI(SoundInit.FABRICATOR_BUTTON.get(), 1.0F));
+            }
+        };
+    }
+
+    public AbstractButton createRecipeButton(int x, int y, int width, int height, int id)
+    {
+        return new AbstractButton(x, y, width, height, Component.empty()) {
+            public final int number = id;
+            @Override
+            public void onPress()
+            {
+                NetworkInit.sendToServer(new ServerboundBrowserMenuPacket(false, number+(page*24), selectedType-1, menu.blockEntity.getBlockPos()));
+            }
+
+            @Override
+            protected void updateWidgetNarration(NarrationElementOutput pNarrationElementOutput)
+            {
+                defaultButtonNarrationText(pNarrationElementOutput);
             }
 
             @Override
@@ -311,6 +344,11 @@ public class FabricatorBrowserCraftScreen extends AbstractContainerScreen<Fabric
         this.recipes = this.recipes.stream().filter(entry -> !(entry.isSpecial())).toList();
 
         this.recipes = filterCraftableRecipes(this.recipes, minecraft.player.getInventory());
+    }
+
+    public int getPageCount()
+    {
+        return this.recipes.size()/24;
     }
 
     public static List<Recipe<Container>> filterCraftableRecipes(List<Recipe<Container>> recipes, Inventory playerInventory) {

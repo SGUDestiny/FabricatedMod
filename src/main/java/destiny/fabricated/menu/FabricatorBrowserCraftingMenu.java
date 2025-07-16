@@ -15,13 +15,15 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
+import java.util.List;
 import java.util.Set;
 
 public class FabricatorBrowserCraftingMenu extends AbstractContainerMenu
 {
     public FabricatorBlockEntity blockEntity;
     public Level level;
-    public Set<FabricatorRecipeModuleItem.RecipeData> recipeTypes;
+    public List<FabricatorRecipeModuleItem.RecipeData> recipeTypes;
+    public int item = 0;
 
     public FabricatorBrowserCraftingMenu(int containerId, Inventory inventory, FriendlyByteBuf buffer)
     {

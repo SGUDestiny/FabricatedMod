@@ -118,9 +118,9 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
         this.state = 2;
     }
 
-    public Set<RecipeData> getRecipeTypes()
+    public List<RecipeData> getRecipeTypes()
     {
-        LinkedHashSet<RecipeData> recipeTypes = new LinkedHashSet<>();
+        List<RecipeData> recipeTypes = new ArrayList<>();
         for (int i = 0; i < this.upgrades.getSlots(); i++)
         {
             ItemStack stack = this.upgrades.getStackInSlot(i);
@@ -308,7 +308,11 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
                     return new FabricatorCraftingMenu(pContainerId, pPlayerInventory, fabricator);
                 }
             };
-            NetworkHooks.openScreen((ServerPlayer) player, provider, fabricator.getBlockPos());
+            NetworkHooks.openScreen((ServerPlayer) player, provider, buf -> {
+                buf.writeBlockPos(fabricator.getBlockPos());
+                buf.writeInt(-1);
+                buf.writeInt(0);
+            });
             this.open(level, pos, fabricator);
             this.isOpen = true;
         }

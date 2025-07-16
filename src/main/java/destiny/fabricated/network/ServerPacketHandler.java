@@ -61,7 +61,11 @@ public class ServerPacketHandler
         {
             packet.getMenu(fabricator).ifPresent(menu -> NetworkHooks.openScreen(player,
                     new SimpleMenuProvider(menu, fabricator.getBlockState().getBlock().getName()),
-                    fabricator.getBlockPos()));
+                    buf -> {
+                buf.writeBlockPos(fabricator.getBlockPos());
+                buf.writeInt(packet.type);
+                buf.writeInt(packet.target);
+                    }));
 
             fabricator.state = 4;
             fabricator.isOpen = true;
