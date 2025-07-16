@@ -31,6 +31,7 @@ import net.minecraft.world.item.crafting.*;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCraftingMenu>
 {
@@ -167,6 +168,11 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
                 recipeStuff(selectedTypeKey);
                 if(menu.blockEntity.batchValue > menu.blockEntity.maxBatch())
                     menu.blockEntity.batchValue = menu.blockEntity.maxBatch();
+
+                //int maxBatch = getMaxCraft(recipes.get(scrollAmount), minecraft.player.getInventory());
+                //if(maxBatch > menu.blockEntity.batchValue)
+                //    menu.blockEntity.batchValue = maxBatch;
+
             }
             if(scrollAmount >= recipes.size())
                 scrollAmount = recipes.size()-1;
@@ -461,6 +467,9 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
                 int usedIncrement = increment;
                 if(InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), InputConstants.KEY_LSHIFT))
                     usedIncrement *= 16;
+                if(getMaxCraft(recipes.get(scrollAmount), minecraft.player.getInventory()) < menu.blockEntity.batchValue+usedIncrement)
+                    return;
+
                 menu.blockEntity.incrementBatch(usedIncrement);
             }
 
@@ -488,6 +497,52 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
         this.recipes = this.recipes.stream().filter(entry -> !entry.getResultItem(Minecraft.getInstance().level.registryAccess()).isEmpty()).toList();
         this.recipes = this.recipes.stream().filter(entry -> !(entry.isSpecial())).toList();
         this.recipes = this.recipes.stream().filter(entry -> hasRequiredItems(minecraft.player.getInventory(), getItems(entry), menu.blockEntity.batchValue)).toList();
+    }
+
+    public static int getMaxCraft(Recipe<?> recipe, Inventory playerInventory) {
+        List<Ingredient> ingredients = recipe.getIngredients();
+        if (ingredients.isEmpty()) return 0;
+
+        List<ItemStack> available = new ArrayList<>();
+        for (int i = 0; i < playerInventory.getContainerSize(); i++) {
+            ItemStack stack = playerInventory.getItem(i);
+            if (!stack.isEmpty()) {
+                available.add(stack.copy());
+            }
+        }
+
+        int craftCount = 0;
+
+        while (true) {
+            List<ItemStack> tempInventory = available.stream().map(ItemStack::copy).collect(Collectors.toList());
+            boolean canCraft = true;
+
+            for (Ingredient ingredient : ingredients) {
+                boolean matched = false;
+
+                for (ItemStack stack : tempInventory) {
+                    if (ingredient.test(stack) && stack.getCount() > 0) {
+                        stack.shrink(1);
+                        matched = true;
+                        break;
+                    }
+                }
+
+                if (!matched) {
+                    canCraft = false;
+                    break;
+                }
+            }
+
+            if (canCraft) {
+                craftCount++;
+                available = tempInventory;
+            } else {
+                break;
+            }
+        }
+
+        return craftCount;
     }
 
     public static boolean hasRequiredItems(Inventory inventory, List<ItemStack> requiredItems, int batchValue) {
