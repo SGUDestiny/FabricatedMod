@@ -63,10 +63,8 @@ public class ServerPacketHandler
                     new SimpleMenuProvider(menu, fabricator.getBlockState().getBlock().getName()),
                     fabricator.getBlockPos()));
 
-            player.level().getServer().execute(new TickTask(20, () -> {
-                fabricator.state = 4;
-                fabricator.isOpen = true;
-            }));
+            fabricator.state = 4;
+            fabricator.isOpen = true;
             NetworkInit.sendToTracking(fabricator, new FabricatorUpdateStatePacket(fabricator.getBlockPos(), 4, true));
         }
     }

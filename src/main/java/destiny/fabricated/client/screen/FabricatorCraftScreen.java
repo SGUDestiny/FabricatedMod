@@ -169,9 +169,9 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
                 if(menu.blockEntity.batchValue > menu.blockEntity.maxBatch())
                     menu.blockEntity.batchValue = menu.blockEntity.maxBatch();
 
-                //int maxBatch = getMaxCraft(recipes.get(scrollAmount), minecraft.player.getInventory());
-                //if(maxBatch > menu.blockEntity.batchValue)
-                //    menu.blockEntity.batchValue = maxBatch;
+                int maxBatch = getMaxCraft(recipes.get(scrollAmount), minecraft.player.getInventory());
+                if(maxBatch < menu.blockEntity.batchValue)
+                    menu.blockEntity.batchValue = maxBatch;
 
             }
 
@@ -511,12 +511,13 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
         this.recipes = recipes.stream().sorted(Comparator.comparing(recipe -> recipe.getResultItem(Minecraft.getInstance().level.registryAccess()).getDisplayName().getString())).toList();
         this.recipes = this.recipes.stream().filter(entry -> !entry.getResultItem(Minecraft.getInstance().level.registryAccess()).isEmpty()).toList();
         this.recipes = this.recipes.stream().filter(entry -> !(entry.isSpecial())).toList();
-        this.recipes = this.recipes.stream().filter(entry -> hasRequiredItems(minecraft.player.getInventory(), getItems(entry), menu.blockEntity.batchValue)).toList();
+        this.recipes = this.recipes.stream().filter(entry -> hasRequiredItems(minecraft.player.getInventory(), getItems(entry), 1)).toList();
     }
 
     public static int getMaxCraft(Recipe<?> recipe, Inventory playerInventory) {
         List<Ingredient> ingredients = recipe.getIngredients();
-        if (ingredients.isEmpty()) return 0;
+        if (ingredients.isEmpty())
+            return 0;
 
         List<ItemStack> available = new ArrayList<>();
         for (int i = 0; i < playerInventory.getContainerSize(); i++) {
@@ -534,6 +535,8 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
 
             for (Ingredient ingredient : ingredients) {
                 boolean matched = false;
+                if(ingredient.isEmpty())
+                    continue;
 
                 for (ItemStack stack : tempInventory) {
                     if (ingredient.test(stack) && stack.getCount() > 0) {

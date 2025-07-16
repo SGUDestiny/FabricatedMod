@@ -20,6 +20,7 @@ import net.minecraft.nbt.StringTag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.MenuProvider;
@@ -70,6 +71,7 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
     public boolean isOpen = false;
     public int batchValue = 1;
 
+    public boolean switching = false;
     public int state = 2;
     public int fabricationStep = 0;
     public int fabricationCounter = -1;

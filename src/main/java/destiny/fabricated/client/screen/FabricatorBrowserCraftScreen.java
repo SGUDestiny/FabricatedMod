@@ -66,6 +66,7 @@ public class FabricatorBrowserCraftScreen extends AbstractContainerScreen<Fabric
     protected void init()
     {
         super.init();
+
         int baseX = (width - imageWidth) / 2;
         int baseY = (height - imageHeight) / 2 - this.menu.recipeTypes.size()*11+11;
 
@@ -309,10 +310,10 @@ public class FabricatorBrowserCraftScreen extends AbstractContainerScreen<Fabric
         this.recipes = this.recipes.stream().filter(entry -> !entry.getResultItem(Minecraft.getInstance().level.registryAccess()).isEmpty()).toList();
         this.recipes = this.recipes.stream().filter(entry -> !(entry.isSpecial())).toList();
 
-        this.recipes = filterCraftableRecipes(this.recipes, minecraft.player.getInventory(), menu.blockEntity.batchValue);
+        this.recipes = filterCraftableRecipes(this.recipes, minecraft.player.getInventory());
     }
 
-    public static List<Recipe<Container>> filterCraftableRecipes(List<Recipe<Container>> recipes, Inventory playerInventory, int batchValue) {
+    public static List<Recipe<Container>> filterCraftableRecipes(List<Recipe<Container>> recipes, Inventory playerInventory) {
         List<ItemStack> inventoryStacks = new ArrayList<>();
 
         for (int i = 0; i < playerInventory.getContainerSize(); i++) {
@@ -330,7 +331,7 @@ public class FabricatorBrowserCraftScreen extends AbstractContainerScreen<Fabric
             Map<Ingredient, Integer> ingredientCounts = new HashMap<>();
             for (Ingredient ingredient : ingredients)
                 if (!ingredient.isEmpty()) {
-                    ingredientCounts.merge(ingredient, batchValue, Integer::sum);
+                    ingredientCounts.merge(ingredient, 1, Integer::sum);
                 }
 
             List<ItemStack> available = inventoryStacks.stream().map(ItemStack::copy).collect(Collectors.toList());
