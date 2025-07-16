@@ -92,6 +92,16 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
         {
             fabricator.fabricationCounter += 1;
         }
+        if(level.isClientSide() && fabricator.fabricationCounter > 50)
+        {
+            fabricator.fabricationStep = 0;
+            fabricator.fabricationCounter = -1;
+            fabricator.state = 4;
+            NetworkInit.sendToServer(new ServerboundFabricationStepPacket(fabricator.getBlockPos(), 0));
+            NetworkInit.sendToServer(new ServerboundFabricatorStatePacket(fabricator.getBlockPos(), 4, fabricator.isOpen));
+            NetworkInit.sendToServer(new FabricatorCraftItemPacket(fabricator.craftStack, fabricator.ingredients, fabricator.getBlockPos()));
+            fabricator.craftStack = ItemStack.EMPTY;
+        }
 
         if(!level.isClientSide() && (!fabricator.isOpen && fabricator.state == 4))
             fabricator.close(level, pos, fabricator);

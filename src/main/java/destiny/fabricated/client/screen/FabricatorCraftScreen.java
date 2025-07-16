@@ -121,6 +121,15 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
     @Override
     protected void renderBg(GuiGraphics graphics, float pPartialTick, int pMouseX, int pMouseY)
     {
+        if(menu.blockEntity.fabricationStep == 2 && menu.blockEntity.fabricationCounter >= 47 && hasSelected)
+            recipeStuff(selectedTypeKey);
+
+        if(menu.blockEntity.batchValue == 0)
+        {
+            recipeStuff(selectedTypeKey);
+            menu.blockEntity.batchValue = 1;
+        }
+
         if(menu.blockEntity.state == 3)
             return;
 
@@ -175,8 +184,6 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
                 recipeStuff(selectedTypeKey);
                 return;
             }
-            if(menu.blockEntity.fabricationStep == 2)
-                recipeStuff(selectedTypeKey);
 
             if(minecraft.level.getGameTime() % 2 == 0)
             {
