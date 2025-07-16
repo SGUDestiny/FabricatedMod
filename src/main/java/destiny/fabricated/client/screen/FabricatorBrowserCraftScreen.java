@@ -3,18 +3,24 @@ package destiny.fabricated.client.screen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import destiny.fabricated.FabricatedMod;
+import destiny.fabricated.init.NetworkInit;
 import destiny.fabricated.init.SoundInit;
 import destiny.fabricated.items.FabricatorRecipeModuleItem;
 import destiny.fabricated.menu.FabricatorBrowserCraftingMenu;
+import destiny.fabricated.network.packets.ServerboundBrowserMenuPacket;
+import destiny.fabricated.tooltip.RecipeTooltipComponent;
 import destiny.fabricated.util.RenderBlitUtil;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.sounds.SoundManager;
+import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
@@ -28,6 +34,8 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static destiny.fabricated.client.screen.FabricatorCraftScreen.*;
 
 public class FabricatorBrowserCraftScreen extends AbstractContainerScreen<FabricatorBrowserCraftingMenu>
 {
@@ -70,6 +78,19 @@ public class FabricatorBrowserCraftScreen extends AbstractContainerScreen<Fabric
 
             this.addWidget(this.createButton(i, x, y, 18, 18, data));
         }
+
+        {
+            int x = baseX+122;
+            int y = baseY+(this.menu.recipeTypes.size()*22)+140;
+            this.addWidget(this.createRecipeBrowserButton(x, y, 10, 10));
+        }
+
+        {
+            int x = baseX+140;
+            int y = baseY+(this.menu.recipeTypes.size()*22)+252;
+            this.addWidget(this.createScrollButton(x, y, 10, 10, -1));
+        }
+
     }
 
     @Override
@@ -87,6 +108,16 @@ public class FabricatorBrowserCraftScreen extends AbstractContainerScreen<Fabric
         int baseY = (height - imageHeight) / 2 - this.menu.recipeTypes.size()*11+11;
 
         int o = 0;
+        {
+            int x = baseX+122;
+            int y = baseY+(this.menu.recipeTypes.size()*22)+140;
+
+            pose.pushPose();
+            pose.translate(x, y, 0);
+            RenderBlitUtil.blit(RECIPE_BROWSER_BUTTON_TEXTURE, pose, 0, 0, 0, 0, 10, 10, 10, 10);
+            pose.popPose();
+        }
+
         for(FabricatorRecipeModuleItem.RecipeData data : this.menu.recipeTypes)
         {
             o++;
@@ -111,6 +142,81 @@ public class FabricatorBrowserCraftScreen extends AbstractContainerScreen<Fabric
             graphics.renderItem(stack, 1, 1);
             pose.popPose();
         }
+
+        if(hasSelected)
+        {
+            for (int x = 0; x < 6; x++)
+            {
+                for (int y = 0; y < 4; y++)
+                {
+                    pose.pushPose();
+                    pose.translate(baseX+140, baseY+(selectedType*22)+120, 0);
+                    pose.translate(x*22, y*22, 0);
+                    pose.scale(0.07f, 0.07f, 0.07f);
+                    RenderBlitUtil.blit(TEXTURE, pose, 0, 0, 0, 0, 256, 256);
+                    pose.popPose();
+                }
+            }
+
+            pose.pushPose();
+            pose.translate(baseX+140, baseY+(selectedType*22)+208, 0);
+            RenderBlitUtil.blit(ARROW_LEFT_TEXTURE, pose, 0, 0, 0, 0, 10, 10, 10, 10);
+            pose.translate(13, 0, 0);
+            RenderBlitUtil.blit(ARROW_RIGHT_TEXTURE, pose, 0, 0, 0, 0, 10, 10, 10, 10);
+            pose.translate(13, 1, 0);
+            font.drawInBatch(String.valueOf(page), 0, 0, 0x5CB8FF, true, graphics.pose().last().pose(), graphics.bufferSource(), Font.DisplayMode.NORMAL, 0, LightTexture.FULL_BRIGHT);
+            pose.popPose();
+
+            int recipeI = 0;
+            for (int y = 0; y < 4; y++)
+                for (int x = 0; x < 6; x++)
+                {
+                    try
+                    {
+                        Recipe<Container> recipe = recipes.get(recipeI);
+                        recipeI++;
+                        int xO = baseX + x * 22 + 140;
+                        int yO = baseY + (y * 22) + (selectedType * 22) + 120;
+
+                        pose.pushPose();
+                        ItemStack stack = recipe.getResultItem(Minecraft.getInstance().level.registryAccess());
+
+                        pose.pushPose();
+                        if (pMouseX > xO && pMouseX < xO + 18) if (pMouseY > yO && pMouseY < yO + 18)
+                            graphics.renderTooltip(Minecraft.getInstance().font, List.of(stack.getHoverName()), Optional.of(new RecipeTooltipComponent(recipe)), pMouseX, pMouseY);
+
+                        pose.translate(xO, yO, 0);
+                        graphics.renderItem(stack, 1, 1);
+                        pose.popPose();
+                    } catch (IndexOutOfBoundsException e)
+                    {
+                        break;
+                    }
+                }
+            
+            for (int i = 0; i < this.recipes.size(); i++)
+            {
+                Recipe<Container> recipe = recipes.get(i);
+                if(recipe != null)
+                {
+
+                }
+            }
+        }
+    }
+
+    @Override
+    public void render(GuiGraphics graphics, int pMouseX, int pMouseY, float pPartialTick)
+    {
+        //renderBackground(graphics);
+        super.render(graphics, pMouseX, pMouseY, pPartialTick);
+        renderTooltip(graphics, pMouseX, pMouseY);
+    }
+
+    @Override
+    protected void renderLabels(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY)
+    {
+
     }
 
     public AbstractButton createButton(int number, int x, int y, int width, int height, FabricatorRecipeModuleItem.RecipeData data)
@@ -144,12 +250,28 @@ public class FabricatorBrowserCraftScreen extends AbstractContainerScreen<Fabric
         };
     }
 
-    public AbstractButton createScrollButton(int number, int x, int y, int width, int height)
+    public AbstractButton createRecipeBrowserButton(int x, int y, int width, int height)
+    {
+        return new AbstractButton(x, y, width, height, Component.empty()) {
+            @Override
+            public void onPress()
+            {
+                ServerboundBrowserMenuPacket packet = new ServerboundBrowserMenuPacket(false, menu.blockEntity.getBlockPos());
+                NetworkInit.sendToServer(packet);
+            }
+
+            @Override
+            protected void updateWidgetNarration(NarrationElementOutput pNarrationElementOutput)
+            {
+                defaultButtonNarrationText(pNarrationElementOutput);
+            }
+        };
+    }
+
+    public AbstractButton createScrollButton(int x, int y, int width, int height, int increment)
     {
         return new AbstractButton(x, y, width, height, Component.empty())
         {
-            public final int id = number;
-
             @Override
             protected void updateWidgetNarration(NarrationElementOutput pNarrationElementOutput)
             {
@@ -164,16 +286,7 @@ public class FabricatorBrowserCraftScreen extends AbstractContainerScreen<Fabric
                 if(recipes.isEmpty())
                     return;
 
-                if(id == -1 && page < 1)
-                    return;
-                if(id == -2 && page < 2)
-                    return;
-                if(id == -3 && page < 3)
-                    return;
-
-                page = page + id;
-                if(page >= recipes.size())
-                    page = recipes.size()-1;
+                page = page + increment;
                 if(page < 0)
                     page = 0;
             }

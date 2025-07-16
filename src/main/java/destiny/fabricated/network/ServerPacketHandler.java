@@ -1,7 +1,9 @@
 package destiny.fabricated.network;
 
 import destiny.fabricated.block_entities.FabricatorBlockEntity;
+import destiny.fabricated.init.NetworkInit;
 import destiny.fabricated.network.packets.*;
+import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.SimpleMenuProvider;
@@ -60,6 +62,12 @@ public class ServerPacketHandler
             packet.getMenu(fabricator).ifPresent(menu -> NetworkHooks.openScreen(player,
                     new SimpleMenuProvider(menu, fabricator.getBlockState().getBlock().getName()),
                     fabricator.getBlockPos()));
+
+            player.level().getServer().execute(new TickTask(20, () -> {
+                fabricator.state = 4;
+                fabricator.isOpen = true;
+            }));
+            NetworkInit.sendToTracking(fabricator, new FabricatorUpdateStatePacket(fabricator.getBlockPos(), 4, true));
         }
     }
 

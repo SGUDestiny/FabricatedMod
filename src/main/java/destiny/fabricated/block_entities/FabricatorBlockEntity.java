@@ -296,7 +296,7 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
                 @Override
                 public Component getDisplayName()
                 {
-                    return Component.translatable("screen.fabricated.fabricator_upgrades");
+                    return Component.translatable("screen.fabricated.fabricator_crafting");
                 }
 
                 @Override

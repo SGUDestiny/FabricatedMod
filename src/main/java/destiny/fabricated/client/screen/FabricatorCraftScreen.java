@@ -174,6 +174,33 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
                 //    menu.blockEntity.batchValue = maxBatch;
 
             }
+
+            if(selectedType != -1)
+            {
+                pose.pushPose();
+                pose.translate(baseX+140, baseY+(4*22)+(selectedType*22)+32, 0);
+
+                pose.pushPose();
+                pose.translate(20, -2, 0);
+                //pose.scale(1/0.07f, 1/0.07f, 1/0.07f);
+                RenderBlitUtil.blit(ARROW_UP_TEXTURE, pose, 0, 0, 0, 0, 10, 10, 10, 10);
+                pose.popPose();
+
+                pose.pushPose();
+                pose.translate(20, 9, 0);
+                //pose.scale(1/0.07f, 1/0.07f, 1/0.07f);
+                RenderBlitUtil.blit(ARROW_DOWN_TEXTURE, pose, 0, 0, 0, 0, 10, 10, 10, 10);
+                pose.popPose();
+
+                pose.pushPose();
+                pose.translate(32, 4, 0);
+                //pose.scale(1/0.07f, 1/0.07f, 1/0.07f);
+                font.drawInBatch(String.valueOf(menu.blockEntity.batchValue), 0, 0, 0x5CB8FF, true, graphics.pose().last().pose(), graphics.bufferSource(), Font.DisplayMode.NORMAL, 0, LightTexture.FULL_BRIGHT);
+                pose.popPose();
+
+                pose.popPose();
+            }
+
             if(scrollAmount >= recipes.size())
                 scrollAmount = recipes.size()-1;
             if(scrollAmount < 0)
@@ -253,32 +280,6 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
                     alpha = 0.5f;
                 if(i == baseI+recipeListSize-3)
                     alpha = 0.75f;
-
-                if(i == baseI+recipeListSize-5)
-                {
-                    pose.pushPose();
-                    pose.translate(baseX+140, baseY+(iO*22)+(selectedType*22)+32, 0);
-
-                    pose.pushPose();
-                    pose.translate(20, -2, 0);
-                    //pose.scale(1/0.07f, 1/0.07f, 1/0.07f);
-                    RenderBlitUtil.blit(ARROW_UP_TEXTURE, pose, 0, 0, 0, 0, 10, 10, 10, 10);
-                    pose.popPose();
-
-                    pose.pushPose();
-                    pose.translate(20, 9, 0);
-                    //pose.scale(1/0.07f, 1/0.07f, 1/0.07f);
-                    RenderBlitUtil.blit(ARROW_DOWN_TEXTURE, pose, 0, 0, 0, 0, 10, 10, 10, 10);
-                    pose.popPose();
-
-                    pose.pushPose();
-                    pose.translate(32, 4, 0);
-                    //pose.scale(1/0.07f, 1/0.07f, 1/0.07f);
-                    font.drawInBatch(String.valueOf(menu.blockEntity.batchValue), 0, 0, 0x5CB8FF, true, graphics.pose().last().pose(), graphics.bufferSource(), Font.DisplayMode.NORMAL, 0, LightTexture.FULL_BRIGHT);
-                    pose.popPose();
-
-                    pose.popPose();
-                }
 
                 try
                 {
@@ -464,11 +465,25 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
             @Override
             public void onPress()
             {
+
+
                 int usedIncrement = increment;
                 if(InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), InputConstants.KEY_LSHIFT))
                     usedIncrement *= 16;
-                if(getMaxCraft(recipes.get(scrollAmount), minecraft.player.getInventory()) < menu.blockEntity.batchValue+usedIncrement)
+
+                if(recipes.isEmpty())
+                {
+                    menu.blockEntity.incrementBatch(usedIncrement);
                     return;
+                }
+                int maxBatch = getMaxCraft(recipes.get(scrollAmount), minecraft.player.getInventory());
+                if(maxBatch < menu.blockEntity.batchValue && maxBatch < menu.blockEntity.batchValue+usedIncrement)
+                    return;
+                if(maxBatch >= menu.blockEntity.batchValue && maxBatch < menu.blockEntity.batchValue+usedIncrement)
+                {
+                    menu.blockEntity.incrementBatch(maxBatch-menu.blockEntity.batchValue);
+                    return;
+                }
 
                 menu.blockEntity.incrementBatch(usedIncrement);
             }
