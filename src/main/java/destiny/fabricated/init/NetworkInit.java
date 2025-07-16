@@ -25,6 +25,7 @@ public class NetworkInit
         INSTANCE.registerMessage(id(), ServerboundSoundPacket.class, ServerboundSoundPacket::write, ServerboundSoundPacket::read, ServerboundSoundPacket::handle);
         INSTANCE.registerMessage(id(), ServerboundFabricatorStatePacket.class, ServerboundFabricatorStatePacket::write, ServerboundFabricatorStatePacket::read, ServerboundFabricatorStatePacket::handle);
         INSTANCE.registerMessage(id(), ServerboundFabricationStepPacket.class, ServerboundFabricationStepPacket::write, ServerboundFabricationStepPacket::read, ServerboundFabricationStepPacket::handle);
+        INSTANCE.registerMessage(id(), ServerboundFabricationBatchPacket.class, ServerboundFabricationBatchPacket::write, ServerboundFabricationBatchPacket::read, ServerboundFabricationBatchPacket::handle);
     }
 
     public static void sendPacketToAll(Object message){

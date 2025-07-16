@@ -1,10 +1,7 @@
 package destiny.fabricated.network;
 
 import destiny.fabricated.block_entities.FabricatorBlockEntity;
-import destiny.fabricated.network.packets.FabricatorCraftItemPacket;
-import destiny.fabricated.network.packets.ServerboundFabricationStepPacket;
-import destiny.fabricated.network.packets.ServerboundFabricatorStatePacket;
-import destiny.fabricated.network.packets.ServerboundSoundPacket;
+import destiny.fabricated.network.packets.*;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -18,10 +15,13 @@ public class ServerPacketHandler
     {
         if(player.level().getBlockEntity(packet.pos) instanceof FabricatorBlockEntity fabricator)
         {
-            ItemEntity itemEntity = new ItemEntity(player.level(), fabricator.getBlockPos().getCenter().x, fabricator.getBlockPos().getCenter().y, fabricator.getBlockPos().getCenter().z, packet.result);
+            ItemStack result = packet.result.copyWithCount(packet.result.getCount()*fabricator.batchValue);
+
+            ItemEntity itemEntity = new ItemEntity(player.level(), fabricator.getBlockPos().getCenter().x, fabricator.getBlockPos().getCenter().y, fabricator.getBlockPos().getCenter().z, result);
             player.level().addFreshEntity(itemEntity);
 
-            ServerPacketHandler.consumeItemsFromInventory(player, packet.ingredients);
+            for (int i = 0; i < fabricator.batchValue; i++)
+                ServerPacketHandler.consumeItemsFromInventory(player, packet.ingredients);
         }
     }
 
@@ -40,6 +40,14 @@ public class ServerPacketHandler
         if(player.level().getBlockEntity(packet.pos) instanceof FabricatorBlockEntity fabricator)
         {
             fabricator.fabricationStep = packet.step;
+        }
+    }
+
+    public static void handleFabricatorBatchPacket(ServerboundFabricationBatchPacket packet, ServerPlayer player)
+    {
+        if(player.level().getBlockEntity(packet.pos) instanceof FabricatorBlockEntity fabricator)
+        {
+            fabricator.batchValue = packet.batch;
         }
     }
 

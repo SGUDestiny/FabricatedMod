@@ -68,6 +68,7 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
     public ItemStack craftStack = ItemStack.EMPTY;
     public List<ItemStack> ingredients = new ArrayList<>();
     public boolean isOpen = false;
+    public int batchValue = 1;
 
     public int state = 2;
     public int fabricationStep = 0;
@@ -101,6 +102,7 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
         tag.put("upgrades", upgrades.serializeNBT());
         tag.putBoolean("is_open", isOpen);
         tag.putInt("state", this.state);
+        tag.putInt("batch", this.batchValue);
     }
 
     @Override
@@ -108,6 +110,7 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
     {
         super.load(tag);
         this.upgrades.deserializeNBT(tag.getCompound("upgrades"));
+        this.batchValue = tag.getInt("batch");
 
         this.isOpen = false;
         this.state = 2;
@@ -129,6 +132,34 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
         }
 
         return recipeTypes;
+    }
+
+    public void incrementBatch(int amount)
+    {
+        this.batchValue += amount;
+        if(batchValue < 1)
+            batchValue = 1;
+
+        int maxValue = maxBatch();
+        if(batchValue > maxValue)
+            batchValue = maxValue;
+
+        if(this.level != null && this.level.isClientSide())
+            NetworkInit.sendToServer(new ServerboundFabricationBatchPacket(this.getBlockPos(), batchValue));
+        setChanged();
+    }
+
+    public int maxBatch()
+    {
+        int maxBatch = 1;
+        for (int i = 0; i < this.upgrades.getSlots(); i++)
+        {
+            ItemStack stack = this.upgrades.getStackInSlot(i);
+            if(stack.getItem() instanceof FabricatorBulkModuleItem bulkModule)
+                maxBatch = bulkModule.getBulkAmount(stack);
+        }
+
+        return maxBatch;
     }
 
     public void open(Level level, BlockPos pos, FabricatorBlockEntity fabricator)

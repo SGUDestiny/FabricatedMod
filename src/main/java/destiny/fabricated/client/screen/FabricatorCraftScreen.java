@@ -1,5 +1,6 @@
 package destiny.fabricated.client.screen;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import destiny.fabricated.FabricatedMod;
@@ -9,11 +10,14 @@ import destiny.fabricated.menu.FabricatorCraftingMenu;
 import destiny.fabricated.tooltip.RecipeTooltipComponent;
 import destiny.fabricated.util.ItemRenderUtil;
 import destiny.fabricated.util.RenderBlitUtil;
+import net.minecraft.client.KeyboardHandler;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.player.KeyboardInput;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -36,6 +40,10 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
 {
     public static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(FabricatedMod.MODID, "textures/gui/fabricator_icon_bg.png");
     public static final ResourceLocation ARROW_SELECT_TEXTURE = ResourceLocation.fromNamespaceAndPath(FabricatedMod.MODID, "textures/gui/fabricator_selector_arrow.png");
+
+    public static final ResourceLocation ARROW_UP_TEXTURE = ResourceLocation.fromNamespaceAndPath(FabricatedMod.MODID, "textures/gui/fabricator_arrow_up.png");
+    public static final ResourceLocation ARROW_DOWN_TEXTURE = ResourceLocation.fromNamespaceAndPath(FabricatedMod.MODID, "textures/gui/fabricator_arrow_down.png");
+
 
     public List<Recipe<Container>> recipes;
     public RecipeType<?> selectedTypeKey;
@@ -78,6 +86,16 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
             int y = baseY+(4*22)+(selectedType*22)+32;
             int x = baseX+140;
             this.addWidget(this.createCraftButton(4, x, y, 18, 18));
+        }
+        {
+            int x = baseX+140+20;
+            int y = baseY+(4*22)+(selectedType*22)+30;
+            this.addWidget(this.createBatchButton(x, y, 10, 10, 1));
+        }
+        {
+            int x = baseX+140+20;
+            int y = baseY+(4*22)+(selectedType*22)+32+9;
+            this.addWidget(this.createBatchButton(x, y, 10, 10, -1));
         }
 
         for(int o = 0; o<10; o++)
@@ -242,9 +260,21 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
                         if(i == baseI+recipeListSize-5)
                         {
                             pose.pushPose();
-                            pose.translate(20/(0.07f), 5/0.07f, 0);
+                            pose.translate(20/(0.07f), -2/0.07f, 0);
                             pose.scale(1/0.07f, 1/0.07f, 1/0.07f);
-                            RenderBlitUtil.blit(ARROW_SELECT_TEXTURE, pose, 0, 0, 0, 0, 10, 8, 10, 8);
+                            RenderBlitUtil.blit(ARROW_UP_TEXTURE, pose, 0, 0, 0, 0, 10, 10, 10, 10);
+                            pose.popPose();
+
+                            pose.pushPose();
+                            pose.translate(20/(0.07f), 9/0.07f, 0);
+                            pose.scale(1/0.07f, 1/0.07f, 1/0.07f);
+                            RenderBlitUtil.blit(ARROW_DOWN_TEXTURE, pose, 0, 0, 0, 0, 10, 10, 10, 10);
+                            pose.popPose();
+
+                            pose.pushPose();
+                            pose.translate(32/(0.07f), 4/0.07f, 0);
+                            pose.scale(1/0.07f, 1/0.07f, 1/0.07f);
+                            font.drawInBatch(String.valueOf(menu.blockEntity.batchValue), 0, 0, 0x5CB8FF, true, graphics.pose().last().pose(), graphics.bufferSource(), Font.DisplayMode.NORMAL, 0, LightTexture.FULL_BRIGHT);
                             pose.popPose();
                         }
 
@@ -332,7 +362,7 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
                 Inventory inventory = minecraft.player.getInventory();
 
                 ItemStack stackToCraft = recipes.get(scrollAmount).getResultItem(Minecraft.getInstance().level.registryAccess());
-                if(hasRequiredItems(minecraft.player.getInventory(), fancyGetItems(inventory, ingredients)))
+                if(hasRequiredItems(minecraft.player.getInventory(), fancyGetItems(inventory, ingredients), menu.blockEntity.batchValue))
                     menu.blockEntity.fabricate(menu.level, menu.blockEntity.getBlockPos(), menu.blockEntity, stackToCraft, fancyGetItems(inventory, ingredients));
             }
 
@@ -383,6 +413,32 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
         };
     }
 
+    public AbstractButton createBatchButton(int x, int y, int width, int height, int increment)
+    {
+        return new AbstractButton(x, y, width, height, Component.empty()) {
+            @Override
+            public void onPress()
+            {
+                int usedIncrement = increment;
+                if(InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), InputConstants.KEY_LSHIFT))
+                    usedIncrement *= 16;
+                menu.blockEntity.incrementBatch(usedIncrement);
+            }
+
+            @Override
+            protected void updateWidgetNarration(NarrationElementOutput pNarrationElementOutput)
+            {
+                defaultButtonNarrationText(pNarrationElementOutput);
+            }
+
+            @Override
+            public void playDownSound(SoundManager pHandler)
+            {
+                pHandler.play(SimpleSoundInstance.forUI(SoundInit.FABRICATOR_BUTTON.get(), 1.0F));
+            }
+        };
+    }
+
     public <T extends Recipe<?>> void recipeStuff(RecipeType<T> recipeType)
     {
         RecipeManager recipeManager = Objects.requireNonNull(Minecraft.getInstance().level).getRecipeManager();
@@ -393,10 +449,10 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
         this.recipes = this.recipes.stream().filter(entry -> !entry.getResultItem(Minecraft.getInstance().level.registryAccess()).isEmpty()).toList();
         this.recipes = this.recipes.stream().filter(entry -> !(entry.isSpecial())).toList();
 
-        this.recipes = filterCraftableRecipes(this.recipes, minecraft.player.getInventory());
+        this.recipes = filterCraftableRecipes(this.recipes, minecraft.player.getInventory(), menu.blockEntity.batchValue);
     }
 
-    public static List<Recipe<Container>> filterCraftableRecipes(List<Recipe<Container>> recipes, Inventory playerInventory) {
+    public static List<Recipe<Container>> filterCraftableRecipes(List<Recipe<Container>> recipes, Inventory playerInventory, int batchValue) {
         List<ItemStack> inventoryStacks = new ArrayList<>();
 
         for (int i = 0; i < playerInventory.getContainerSize(); i++) {
@@ -414,7 +470,7 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
             Map<Ingredient, Integer> ingredientCounts = new HashMap<>();
             for (Ingredient ingredient : ingredients)
                 if (!ingredient.isEmpty()) {
-                    ingredientCounts.merge(ingredient, 1, Integer::sum);
+                    ingredientCounts.merge(ingredient, batchValue, Integer::sum);
                 }
 
             List<ItemStack> available = inventoryStacks.stream().map(ItemStack::copy).collect(Collectors.toList());
@@ -450,13 +506,15 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
         return result;
     }
 
-    public static boolean hasRequiredItems(Inventory inventory, List<ItemStack> requiredItems) {
+    public static boolean hasRequiredItems(Inventory inventory, List<ItemStack> requiredItems, int batchValue) {
         List<ItemStack> simulatedInventory = inventory.items.stream()
                 .map(ItemStack::copy)
                 .toList();
 
         for (ItemStack required : requiredItems) {
             if (required.isEmpty()) continue;
+
+            required.setCount(required.getCount()*batchValue);
 
             int remaining = required.getCount();
 
