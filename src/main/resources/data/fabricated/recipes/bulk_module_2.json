@@ -13,7 +13,7 @@
       "tag": "forge:gems/diamond"
     },
     "E": {
-      "item": "minecraft:ender_eye"
+      "item": "fabricated:fabricator_bulk_module_1"
     }
   },
   "pattern": [

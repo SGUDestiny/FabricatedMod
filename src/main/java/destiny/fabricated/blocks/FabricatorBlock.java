@@ -79,7 +79,7 @@ public class FabricatorBlock extends BaseEntityBlock implements SimpleWaterlogge
     public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
         if (pLevel.getBlockEntity(pPos) instanceof FabricatorBlockEntity fabricator)
         {
-            if(fabricator.isOpen)
+            if(fabricator.isOpen || fabricator.fabricationStep != 0)
                 return InteractionResult.PASS;
 
             if (pPlayer.isCrouching())

@@ -13,7 +13,7 @@
       "tag": "forge:ingots/netherite"
     },
     "E": {
-      "item": "minecraft:ender_eye"
+      "item": "fabricated:fabricator_bulk_module_2"
     }
   },
   "pattern": [

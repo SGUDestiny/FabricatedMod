@@ -2,6 +2,7 @@ package destiny.fabricated.network;
 
 import destiny.fabricated.block_entities.FabricatorBlockEntity;
 import destiny.fabricated.network.packets.FabricatorCraftItemPacket;
+import destiny.fabricated.network.packets.ServerboundFabricationStepPacket;
 import destiny.fabricated.network.packets.ServerboundFabricatorStatePacket;
 import destiny.fabricated.network.packets.ServerboundSoundPacket;
 import net.minecraft.server.level.ServerPlayer;
@@ -31,6 +32,14 @@ public class ServerPacketHandler
             fabricator.state = packet.state;
             fabricator.isOpen = packet.isOpen;
             fabricator.setChanged();
+        }
+    }
+
+    public static void handleFabricatorStepPacket(ServerboundFabricationStepPacket packet, ServerPlayer player)
+    {
+        if(player.level().getBlockEntity(packet.pos) instanceof FabricatorBlockEntity fabricator)
+        {
+            fabricator.fabricationStep = packet.step;
         }
     }
 

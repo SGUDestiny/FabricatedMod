@@ -5,14 +5,12 @@ import destiny.fabricated.init.BlockEntityInit;
 import destiny.fabricated.init.NetworkInit;
 import destiny.fabricated.init.SoundInit;
 import destiny.fabricated.items.FabricatorBulkModuleItem;
+import destiny.fabricated.items.FabricatorModuleItem;
 import destiny.fabricated.items.FabricatorRecipeModuleItem;
 import destiny.fabricated.items.FabricatorRecipeModuleItem.RecipeData;
 import destiny.fabricated.menu.FabricatorCraftingMenu;
 import destiny.fabricated.menu.FabricatorUpgradesMenu;
-import destiny.fabricated.network.packets.FabricatorCraftItemPacket;
-import destiny.fabricated.network.packets.FabricatorUpdateStatePacket;
-import destiny.fabricated.network.packets.ServerboundFabricatorStatePacket;
-import destiny.fabricated.network.packets.ServerboundSoundPacket;
+import destiny.fabricated.network.packets.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.chat.report.ReportEnvironment;
 import net.minecraft.core.BlockPos;
@@ -46,10 +44,7 @@ import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
 {
@@ -104,8 +99,8 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
     {
         super.saveAdditional(tag);
         tag.put("upgrades", upgrades.serializeNBT());
-        //tag.putBoolean("is_open", isOpen);
-        //tag.putInt("state", this.state);
+        tag.putBoolean("is_open", isOpen);
+        tag.putInt("state", this.state);
     }
 
     @Override
@@ -113,8 +108,6 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
     {
         super.load(tag);
         this.upgrades.deserializeNBT(tag.getCompound("upgrades"));
-        //this.isOpen = tag.getBoolean("is_open");
-        //this.state = tag.getInt("state");
 
         this.isOpen = false;
         this.state = 2;
@@ -122,13 +115,16 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
 
     public Set<RecipeData> getRecipeTypes()
     {
-        Set<RecipeData> recipeTypes = new HashSet<>();
+        LinkedHashSet<RecipeData> recipeTypes = new LinkedHashSet<>();
         for (int i = 0; i < this.upgrades.getSlots(); i++)
         {
             ItemStack stack = this.upgrades.getStackInSlot(i);
             if(stack.getItem() instanceof FabricatorRecipeModuleItem recipeModule)
             {
-                recipeTypes.addAll(recipeModule.getRecipeTypes(stack));
+                recipeModule.getRecipeTypes(stack).forEach(data -> {
+                    if(recipeTypes.stream().noneMatch(recipeData -> recipeData.key.equals(data.key)))
+                        recipeTypes.add(data);
+                });
             }
         }
 
@@ -210,11 +206,13 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
             if (event.getKeyframeData().getInstructions().equals("start"))
             {
                 this.fabricationStep = 1;
+                NetworkInit.sendToServer(new ServerboundFabricationStepPacket(this.getBlockPos(), 1));
                 this.fabricationCounter = 0;
             }
             if (event.getKeyframeData().getInstructions().equals("switch"))
             {
                 this.fabricationStep = 2;
+                NetworkInit.sendToServer(new ServerboundFabricationStepPacket(this.getBlockPos(), 2));
                 this.fabricationCounter = 0;
             }
             if (event.getKeyframeData().getInstructions().equals("end"))
@@ -222,6 +220,7 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
                 this.fabricationStep = 0;
                 this.fabricationCounter = -1;
                 this.state = 4;
+                NetworkInit.sendToServer(new ServerboundFabricationStepPacket(this.getBlockPos(), 0));
                 NetworkInit.sendToServer(new ServerboundFabricatorStatePacket(this.getBlockPos(), 4, this.isOpen));
                 NetworkInit.sendToServer(new FabricatorCraftItemPacket(this.craftStack, this.ingredients, this.getBlockPos()));
                 this.craftStack = ItemStack.EMPTY;
@@ -295,8 +294,33 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
             @Override
             public boolean isItemValid(int slot, @NotNull ItemStack stack)
             {
-                if(stack.getItem() instanceof FabricatorBulkModuleItem || stack.getItem() instanceof FabricatorRecipeModuleItem)
+                if(stack.getItem() instanceof FabricatorModuleItem)
                 {
+                    if(stack.getItem() instanceof FabricatorRecipeModuleItem)
+                    {
+                        return this.stacks.stream().noneMatch(upgradeStack -> {
+                            if(upgradeStack.getItem() instanceof FabricatorRecipeModuleItem recipeModule)
+                            {
+                                for (int i = 0; i < recipeModule.getRecipeTypes(stack).size(); i++)
+                                {
+                                    List<RecipeData> stackRecipes = recipeModule.getRecipeTypes(stack);
+                                    for (int j = 0; j < recipeModule.getRecipeTypes(upgradeStack).size(); j++)
+                                    {
+                                        List<RecipeData> upgradeRecipes = recipeModule.getRecipeTypes(upgradeStack);
+                                        RecipeData stackRecipe = stackRecipes.get(i);
+                                        RecipeData upgradeRecipe = upgradeRecipes.get(i);
+
+                                        if(stackRecipe.key.equals(upgradeRecipe.key))
+                                            return true;
+
+                                    }
+                                }
+                                return true;
+                            }
+                            return false;
+                        });
+                    }
+
                     return this.stacks.stream().noneMatch(module -> module.getItem() instanceof FabricatorBulkModuleItem) || !(stack.getItem() instanceof FabricatorBulkModuleItem);
                 }
 

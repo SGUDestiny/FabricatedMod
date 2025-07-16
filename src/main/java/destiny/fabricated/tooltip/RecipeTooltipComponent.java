@@ -91,6 +91,7 @@ public class RecipeTooltipComponent implements ClientTooltipComponent, TooltipCo
             stack.setCount(entry.getValue());
             combinedResult.add(stack);
         }
+        combinedResult.sort(Comparator.comparing(stack -> stack.getDisplayName().getString()));
 
         return combinedResult;
     }

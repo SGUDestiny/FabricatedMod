@@ -3,6 +3,7 @@ package destiny.fabricated.menu;
 import destiny.fabricated.block_entities.FabricatorBlockEntity;
 import destiny.fabricated.init.BlockInit;
 import destiny.fabricated.init.MenuInit;
+import destiny.fabricated.items.FabricatorBulkModuleItem;
 import destiny.fabricated.items.FabricatorModuleItem;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.Container;
@@ -52,7 +53,7 @@ public class FabricatorUpgradesMenu extends AbstractContainerMenu
             @Override
             public boolean mayPlace(@NotNull ItemStack stack)
             {
-                return stack.getItem() instanceof FabricatorModuleItem;
+                return stack.getItem() instanceof FabricatorModuleItem && blockEntity.upgrades.isItemValid(id, stack);
             }
         };
     }
