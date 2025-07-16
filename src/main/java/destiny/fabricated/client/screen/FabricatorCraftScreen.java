@@ -4,23 +4,21 @@ import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import destiny.fabricated.FabricatedMod;
+import destiny.fabricated.init.NetworkInit;
 import destiny.fabricated.init.SoundInit;
 import destiny.fabricated.items.FabricatorRecipeModuleItem.RecipeData;
 import destiny.fabricated.menu.FabricatorCraftingMenu;
+import destiny.fabricated.network.packets.ServerboundBrowserMenuPacket;
 import destiny.fabricated.tooltip.RecipeTooltipComponent;
-import destiny.fabricated.util.ItemRenderUtil;
 import destiny.fabricated.util.RenderBlitUtil;
-import net.minecraft.client.KeyboardHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.player.KeyboardInput;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
@@ -28,22 +26,20 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCraftingMenu>
 {
     public static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(FabricatedMod.MODID, "textures/gui/fabricator_icon_bg.png");
-    public static final ResourceLocation ARROW_SELECT_TEXTURE = ResourceLocation.fromNamespaceAndPath(FabricatedMod.MODID, "textures/gui/fabricator_selector_arrow.png");
 
     public static final ResourceLocation ARROW_UP_TEXTURE = ResourceLocation.fromNamespaceAndPath(FabricatedMod.MODID, "textures/gui/fabricator_arrow_up.png");
     public static final ResourceLocation ARROW_DOWN_TEXTURE = ResourceLocation.fromNamespaceAndPath(FabricatedMod.MODID, "textures/gui/fabricator_arrow_down.png");
 
+    public static final ResourceLocation RECIPE_BROWSER_BUTTON_TEXTURE = ResourceLocation.fromNamespaceAndPath(FabricatedMod.MODID, "textures/gui/fabricator_recipe_browser.png");
 
     public List<Recipe<Container>> recipes;
     public RecipeType<?> selectedTypeKey;
@@ -97,6 +93,11 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
             int y = baseY+(4*22)+(selectedType*22)+32+9;
             this.addWidget(this.createBatchButton(x, y, 10, 10, -1));
         }
+        {
+            int x = baseX+122;
+            int y = baseY+(this.menu.recipeTypes.size()*22)+140;
+            this.addWidget(this.createRecipeBrowserButton(x, y, 10, 10));
+        }
 
         for(int o = 0; o<10; o++)
         {
@@ -149,9 +150,24 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
             pose.popPose();
         }
 
+        {
+            int x = baseX+122;
+            int y = baseY+(this.menu.recipeTypes.size()*22)+140;
+
+            pose.pushPose();
+            pose.translate(x, y, 0);
+            RenderBlitUtil.blit(RECIPE_BROWSER_BUTTON_TEXTURE, pose, 0, 0, 0, 0, 10, 10, 10, 10);
+            pose.popPose();
+        }
+
         if(hasSelected)
         {
-            recipeStuff(selectedTypeKey);
+            if(minecraft.level.getGameTime() % 10 == 0)
+            {
+                recipeStuff(selectedTypeKey);
+                if(menu.blockEntity.batchValue > menu.blockEntity.maxBatch())
+                    menu.blockEntity.batchValue = menu.blockEntity.maxBatch();
+            }
             if(scrollAmount >= recipes.size())
                 scrollAmount = recipes.size()-1;
             if(scrollAmount < 0)
@@ -232,6 +248,32 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
                 if(i == baseI+recipeListSize-3)
                     alpha = 0.75f;
 
+                if(i == baseI+recipeListSize-5)
+                {
+                    pose.pushPose();
+                    pose.translate(baseX+140, baseY+(iO*22)+(selectedType*22)+32, 0);
+
+                    pose.pushPose();
+                    pose.translate(20, -2, 0);
+                    //pose.scale(1/0.07f, 1/0.07f, 1/0.07f);
+                    RenderBlitUtil.blit(ARROW_UP_TEXTURE, pose, 0, 0, 0, 0, 10, 10, 10, 10);
+                    pose.popPose();
+
+                    pose.pushPose();
+                    pose.translate(20, 9, 0);
+                    //pose.scale(1/0.07f, 1/0.07f, 1/0.07f);
+                    RenderBlitUtil.blit(ARROW_DOWN_TEXTURE, pose, 0, 0, 0, 0, 10, 10, 10, 10);
+                    pose.popPose();
+
+                    pose.pushPose();
+                    pose.translate(32, 4, 0);
+                    //pose.scale(1/0.07f, 1/0.07f, 1/0.07f);
+                    font.drawInBatch(String.valueOf(menu.blockEntity.batchValue), 0, 0, 0x5CB8FF, true, graphics.pose().last().pose(), graphics.bufferSource(), Font.DisplayMode.NORMAL, 0, LightTexture.FULL_BRIGHT);
+                    pose.popPose();
+
+                    pose.popPose();
+                }
+
                 try
                 {
                     Recipe<Container> recipe = recipes.get(recipeI+amountToScroll);
@@ -256,27 +298,6 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
                         RenderSystem.enableBlend();
                         RenderSystem.setShaderColor(1f, 1f, 1f, alpha);
                         RenderBlitUtil.blit(TEXTURE, pose, 0, 0, 0, 0, 256, 256);
-
-                        if(i == baseI+recipeListSize-5)
-                        {
-                            pose.pushPose();
-                            pose.translate(20/(0.07f), -2/0.07f, 0);
-                            pose.scale(1/0.07f, 1/0.07f, 1/0.07f);
-                            RenderBlitUtil.blit(ARROW_UP_TEXTURE, pose, 0, 0, 0, 0, 10, 10, 10, 10);
-                            pose.popPose();
-
-                            pose.pushPose();
-                            pose.translate(20/(0.07f), 9/0.07f, 0);
-                            pose.scale(1/0.07f, 1/0.07f, 1/0.07f);
-                            RenderBlitUtil.blit(ARROW_DOWN_TEXTURE, pose, 0, 0, 0, 0, 10, 10, 10, 10);
-                            pose.popPose();
-
-                            pose.pushPose();
-                            pose.translate(32/(0.07f), 4/0.07f, 0);
-                            pose.scale(1/0.07f, 1/0.07f, 1/0.07f);
-                            font.drawInBatch(String.valueOf(menu.blockEntity.batchValue), 0, 0, 0x5CB8FF, true, graphics.pose().last().pose(), graphics.bufferSource(), Font.DisplayMode.NORMAL, 0, LightTexture.FULL_BRIGHT);
-                            pose.popPose();
-                        }
 
                         RenderSystem.disableBlend();
                         RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
@@ -413,6 +434,24 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
         };
     }
 
+    public AbstractButton createRecipeBrowserButton(int x, int y, int width, int height)
+    {
+        return new AbstractButton(x, y, width, height, Component.empty()) {
+            @Override
+            public void onPress()
+            {
+                ServerboundBrowserMenuPacket packet = new ServerboundBrowserMenuPacket(true, menu.blockEntity.getBlockPos());
+                NetworkInit.sendToServer(packet);
+            }
+
+            @Override
+            protected void updateWidgetNarration(NarrationElementOutput pNarrationElementOutput)
+            {
+                defaultButtonNarrationText(pNarrationElementOutput);
+            }
+        };
+    }
+
     public AbstractButton createBatchButton(int x, int y, int width, int height, int increment)
     {
         return new AbstractButton(x, y, width, height, Component.empty()) {
@@ -448,62 +487,7 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
         this.recipes = recipes.stream().sorted(Comparator.comparing(recipe -> recipe.getResultItem(Minecraft.getInstance().level.registryAccess()).getDisplayName().getString())).toList();
         this.recipes = this.recipes.stream().filter(entry -> !entry.getResultItem(Minecraft.getInstance().level.registryAccess()).isEmpty()).toList();
         this.recipes = this.recipes.stream().filter(entry -> !(entry.isSpecial())).toList();
-
-        this.recipes = filterCraftableRecipes(this.recipes, minecraft.player.getInventory(), menu.blockEntity.batchValue);
-    }
-
-    public static List<Recipe<Container>> filterCraftableRecipes(List<Recipe<Container>> recipes, Inventory playerInventory, int batchValue) {
-        List<ItemStack> inventoryStacks = new ArrayList<>();
-
-        for (int i = 0; i < playerInventory.getContainerSize(); i++) {
-            ItemStack stack = playerInventory.getItem(i);
-            if (!stack.isEmpty()) {
-                inventoryStacks.add(stack.copy());
-            }
-        }
-
-        List<Recipe<Container>> result = new ArrayList<>();
-        for (Recipe<Container> recipe : recipes) {
-
-            List<Ingredient> ingredients = recipe.getIngredients();
-
-            Map<Ingredient, Integer> ingredientCounts = new HashMap<>();
-            for (Ingredient ingredient : ingredients)
-                if (!ingredient.isEmpty()) {
-                    ingredientCounts.merge(ingredient, batchValue, Integer::sum);
-                }
-
-            List<ItemStack> available = inventoryStacks.stream().map(ItemStack::copy).collect(Collectors.toList());
-
-            boolean canCraft = true;
-            for (Map.Entry<Ingredient, Integer> entry : ingredientCounts.entrySet())
-            {
-                Ingredient ingredient = entry.getKey();
-                int neededCount = entry.getValue();
-
-                int availableCount = 0;
-
-                for (ItemStack stack : available)
-                    if (ingredient.test(stack))
-                    {
-                        int use = Math.min(neededCount - availableCount, stack.getCount());
-                        availableCount += use;
-                        if (availableCount >= neededCount) break;
-                    }
-
-                if (availableCount < neededCount)
-                {
-                    canCraft = false;
-                    break;
-                }
-            }
-
-            if (canCraft) {
-                result.add(recipe);
-            }
-        }
-
-        return result;
+        this.recipes = this.recipes.stream().filter(entry -> hasRequiredItems(minecraft.player.getInventory(), getItems(entry), menu.blockEntity.batchValue)).toList();
     }
 
     public static boolean hasRequiredItems(Inventory inventory, List<ItemStack> requiredItems, int batchValue) {

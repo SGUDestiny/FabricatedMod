@@ -2,6 +2,7 @@ package destiny.fabricated.events;
 
 import destiny.fabricated.FabricatedMod;
 import destiny.fabricated.client.renderer.block.FabricatorBlockRenderer;
+import destiny.fabricated.client.screen.FabricatorBrowserCraftScreen;
 import destiny.fabricated.client.screen.FabricatorCraftScreen;
 import destiny.fabricated.client.screen.FabricatorUpgradeScreen;
 import destiny.fabricated.init.BlockEntityInit;
@@ -47,6 +48,7 @@ public class ClientEvents {
     {
         MenuScreens.register(MenuInit.FABRICATOR_UPGRADES.get(), FabricatorUpgradeScreen::new);
         MenuScreens.register(MenuInit.FABRICATOR_CRAFTING.get(), FabricatorCraftScreen::new);
+        MenuScreens.register(MenuInit.FABRICATOR_BROWSER.get(), FabricatorBrowserCraftScreen::new);
     }
 
     @SubscribeEvent

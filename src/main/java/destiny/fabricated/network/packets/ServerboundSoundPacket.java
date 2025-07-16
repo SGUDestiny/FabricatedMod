@@ -1,6 +1,5 @@
 package destiny.fabricated.network.packets;
 
-import destiny.fabricated.network.ClientPacketHandler;
 import destiny.fabricated.network.ServerPacketHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;

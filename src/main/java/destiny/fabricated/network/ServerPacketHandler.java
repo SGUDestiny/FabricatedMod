@@ -4,8 +4,10 @@ import destiny.fabricated.block_entities.FabricatorBlockEntity;
 import destiny.fabricated.network.packets.*;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.network.NetworkHooks;
 
 import java.util.List;
 
@@ -48,6 +50,16 @@ public class ServerPacketHandler
         if(player.level().getBlockEntity(packet.pos) instanceof FabricatorBlockEntity fabricator)
         {
             fabricator.batchValue = packet.batch;
+        }
+    }
+
+    public static void handleFabricatorMenuChange(ServerboundBrowserMenuPacket packet, ServerPlayer player)
+    {
+        if(player.level().getBlockEntity(packet.pos) instanceof FabricatorBlockEntity fabricator)
+        {
+            packet.getMenu(fabricator).ifPresent(menu -> NetworkHooks.openScreen(player,
+                    new SimpleMenuProvider(menu, fabricator.getBlockState().getBlock().getName()),
+                    fabricator.getBlockPos()));
         }
     }
 

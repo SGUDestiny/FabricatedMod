@@ -26,6 +26,7 @@ public class NetworkInit
         INSTANCE.registerMessage(id(), ServerboundFabricatorStatePacket.class, ServerboundFabricatorStatePacket::write, ServerboundFabricatorStatePacket::read, ServerboundFabricatorStatePacket::handle);
         INSTANCE.registerMessage(id(), ServerboundFabricationStepPacket.class, ServerboundFabricationStepPacket::write, ServerboundFabricationStepPacket::read, ServerboundFabricationStepPacket::handle);
         INSTANCE.registerMessage(id(), ServerboundFabricationBatchPacket.class, ServerboundFabricationBatchPacket::write, ServerboundFabricationBatchPacket::read, ServerboundFabricationBatchPacket::handle);
+        INSTANCE.registerMessage(id(), ServerboundBrowserMenuPacket.class, ServerboundBrowserMenuPacket::write, ServerboundBrowserMenuPacket::read, ServerboundBrowserMenuPacket::handle);
     }
 
     public static void sendPacketToAll(Object message){
