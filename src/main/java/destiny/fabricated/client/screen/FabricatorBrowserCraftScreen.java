@@ -50,6 +50,8 @@ public class FabricatorBrowserCraftScreen extends AbstractContainerScreen<Fabric
     public int page;
     public int selectedType;
 
+    public int returnScroll;
+
     public FabricatorBrowserCraftScreen(FabricatorBrowserCraftingMenu pMenu, Inventory pPlayerInventory, Component pTitle)
     {
         super(pMenu, pPlayerInventory, pTitle);
@@ -57,8 +59,14 @@ public class FabricatorBrowserCraftScreen extends AbstractContainerScreen<Fabric
         this.imageHeight = 256;
 
         this.recipes = new ArrayList<>();
-        this.hasSelected = false;
-        this.selectedType = -1;
+        this.selectedType = pMenu.type;
+        this.returnScroll = pMenu.item;
+        this.hasSelected = selectedType != -1;
+        if(this.hasSelected)
+        {
+            this.selectedTypeKey = ForgeRegistries.RECIPE_TYPES.getValue(menu.blockEntity.getRecipeTypes().get(selectedType).key.location());
+            selectedType += 1;
+        }
         this.page = 0;
     }
 
@@ -88,7 +96,7 @@ public class FabricatorBrowserCraftScreen extends AbstractContainerScreen<Fabric
 
         {
             int x = baseX+140;
-            int y = baseY+(this.selectedType*22)+208;
+            int y = baseY+(this.selectedType*22)+108;
             this.addWidget(this.createScrollButton(x, y, 10, 10, -1));
 
             x += 13;
@@ -122,16 +130,6 @@ public class FabricatorBrowserCraftScreen extends AbstractContainerScreen<Fabric
         int baseY = (height - imageHeight) / 2 - this.menu.recipeTypes.size()*11+11;
 
         int o = 0;
-        {
-            int x = baseX+122;
-            int y = baseY+(this.menu.recipeTypes.size()*22)+140;
-
-            pose.pushPose();
-            pose.translate(x, y, 0);
-            RenderBlitUtil.blit(RECIPE_BROWSER_BUTTON_TEXTURE, pose, 0, 0, 0, 0, 10, 10, 10, 10);
-            pose.popPose();
-        }
-
         for(FabricatorRecipeModuleItem.RecipeData data : this.menu.recipeTypes)
         {
             o++;
@@ -159,26 +157,31 @@ public class FabricatorBrowserCraftScreen extends AbstractContainerScreen<Fabric
 
         if(hasSelected)
         {
-            for (int x = 0; x < 6; x++)
+            rebuildWidgets();
+            if(recipes.isEmpty())
             {
-                for (int y = 0; y < 4; y++)
-                {
-                    pose.pushPose();
-                    pose.translate(baseX+140, baseY+(selectedType*22)+120, 0);
-                    pose.translate(x*22, y*22, 0);
-                    pose.scale(0.07f, 0.07f, 0.07f);
-                    RenderBlitUtil.blit(TEXTURE, pose, 0, 0, 0, 0, 256, 256);
-                    pose.popPose();
-                }
+                if (menu.blockEntity.getLevel().getGameTime() % 20 == 0)
+                    recipeStuff(selectedTypeKey);
+                return;
+            }
+
+            {
+                int x = baseX+122;
+                int y = baseY+(this.menu.recipeTypes.size()*22)+140;
+
+                pose.pushPose();
+                pose.translate(x, y, 0);
+                RenderBlitUtil.blit(RECIPE_BROWSER_BUTTON_TEXTURE, pose, 0, 0, 0, 0, 10, 10, 10, 10);
+                pose.popPose();
             }
 
             pose.pushPose();
-            pose.translate(baseX+140, baseY+(selectedType*22)+208, 0);
+            pose.translate(baseX+140, baseY+(selectedType*22)+108, 0);
             RenderBlitUtil.blit(ARROW_LEFT_TEXTURE, pose, 0, 0, 0, 0, 10, 10, 10, 10);
             pose.translate(13, 0, 0);
             RenderBlitUtil.blit(ARROW_RIGHT_TEXTURE, pose, 0, 0, 0, 0, 10, 10, 10, 10);
             pose.translate(13, 1, 0);
-            font.drawInBatch(String.valueOf(page), 0, 0, 0x5CB8FF, true, graphics.pose().last().pose(), graphics.bufferSource(), Font.DisplayMode.NORMAL, 0, LightTexture.FULL_BRIGHT);
+            font.drawInBatch(String.valueOf(page+1), 0, 0, 0x5CB8FF, true, graphics.pose().last().pose(), graphics.bufferSource(), Font.DisplayMode.NORMAL, 0, LightTexture.FULL_BRIGHT);
             pose.popPose();
 
             int recipeI = 24*page;
@@ -200,6 +203,10 @@ public class FabricatorBrowserCraftScreen extends AbstractContainerScreen<Fabric
                             graphics.renderTooltip(Minecraft.getInstance().font, List.of(stack.getHoverName()), Optional.of(new RecipeTooltipComponent(recipe)), pMouseX, pMouseY);
 
                         pose.translate(xO, yO, 0);
+                        pose.pushPose();
+                        pose.scale(0.07f, 0.07f, 0.07f);
+                        RenderBlitUtil.blit(TEXTURE, pose, 0, 0, 0, 0, 256, 256);
+                        pose.popPose();
                         graphics.renderItem(stack, 1, 1);
                         pose.popPose();
                     } catch (IndexOutOfBoundsException e)
@@ -262,7 +269,7 @@ public class FabricatorBrowserCraftScreen extends AbstractContainerScreen<Fabric
             public void onPress()
             {
                 menu.switching = true;
-                ServerboundBrowserMenuPacket packet = new ServerboundBrowserMenuPacket(false, 0, -1, menu.blockEntity.getBlockPos());
+                ServerboundBrowserMenuPacket packet = new ServerboundBrowserMenuPacket(false, returnScroll+1, selectedType-1, menu.blockEntity.getBlockPos());
                 NetworkInit.sendToServer(packet);
             }
 
@@ -338,7 +345,7 @@ public class FabricatorBrowserCraftScreen extends AbstractContainerScreen<Fabric
 
         List<Recipe<Container>> recipes = recipeManager.getAllRecipesFor(((RecipeType<Recipe<Container>>) recipeType));
 
-        this.recipes = filterCraftableRecipes(recipes, minecraft.player.getInventory());
+        this.recipes = recipes.stream().filter(recipe -> hasRequiredItems(minecraft.player.getInventory(), getItems(recipe), 1)).toList();
 
         this.recipes = this.recipes.stream().filter(entry -> !entry.getResultItem(Minecraft.getInstance().level.registryAccess()).isEmpty()).toList();
         this.recipes = this.recipes.stream().filter(entry -> !(entry.isSpecial())).toList();
@@ -366,24 +373,24 @@ public class FabricatorBrowserCraftScreen extends AbstractContainerScreen<Fabric
 
             List<Ingredient> ingredients = recipe.getIngredients();
 
-            Map<Ingredient, Integer> ingredientCounts = new HashMap<>();
+            Map<List<ItemStack>, Integer> ingredientCounts = new HashMap<>();
             for (Ingredient ingredient : ingredients)
                 if (!ingredient.isEmpty()) {
-                    ingredientCounts.merge(ingredient, 1, Integer::sum);
+                    ingredientCounts.merge(List.of(ingredient.getItems()), 1, Integer::sum);
                 }
 
             List<ItemStack> available = inventoryStacks.stream().map(ItemStack::copy).collect(Collectors.toList());
 
             boolean canCraft = true;
-            for (Map.Entry<Ingredient, Integer> entry : ingredientCounts.entrySet())
+            for (Map.Entry<List<ItemStack>, Integer> entry : ingredientCounts.entrySet())
             {
-                Ingredient ingredient = entry.getKey();
+                List<ItemStack> ingredient = entry.getKey();
                 int neededCount = entry.getValue();
 
                 int availableCount = 0;
 
                 for (ItemStack stack : available)
-                    if (ingredient.test(stack))
+                    if (ingredient.stream().anyMatch(ing -> stack.is(ing.getItem())))
                     {
                         int use = Math.min(neededCount - availableCount, stack.getCount());
                         availableCount += use;

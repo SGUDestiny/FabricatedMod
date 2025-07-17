@@ -13,6 +13,7 @@ import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.world.item.ItemDisplayContext;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.renderer.GeoBlockRenderer;
+import software.bernie.geckolib.renderer.layer.AutoGlowingGeoLayer;
 
 public class FabricatorBlockRenderer extends GeoBlockRenderer<FabricatorBlockEntity>
 {
@@ -20,6 +21,7 @@ public class FabricatorBlockRenderer extends GeoBlockRenderer<FabricatorBlockEnt
     public FabricatorBlockRenderer()
     {
         super(new FabricatorModel());
+        this.addRenderLayer(new AutoGlowingGeoLayer<>(this));
         this.itemRenderer = Minecraft.getInstance().getItemRenderer();
     }
 

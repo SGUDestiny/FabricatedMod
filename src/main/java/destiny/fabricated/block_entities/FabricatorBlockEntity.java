@@ -243,17 +243,18 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
         this.closeAfterCraft = closeAfterCraft;
         if(level.isClientSide())
         {
+
             NetworkInit.sendToServer(new ServerboundFabricatorAnimPacket(pos, "close", closeAfterCraft));
             return;
         }
-
         if(!closeAfterCraft)
         {
-            level.playSound(null, pos, SoundInit.FABRICATOR_CLOSE.get(), SoundSource.BLOCKS);
-
             level.setBlock(pos, getBlockState().setValue(FabricatorBlock.STATE, FabricatorBlock.FabricatorState.CLOSED), 2);
             triggerAnim("main", "close");
         }
+
+        level.playSound(null, pos, SoundInit.FABRICATOR_CLOSE.get(), SoundSource.BLOCKS);
+
     }
 
     public void fabricate(Level level, BlockPos pos, ItemStack stack, List<ItemStack> ingredients)
@@ -262,7 +263,7 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
         {
             NetworkInit.sendToServer(new ServerboundFabricatorAnimPacket(pos, "fabricate", false));
             NetworkInit.sendToServer(new ServerboundFabricatorCraftItemPacket(pos, stack, ingredients));
-
+            NetworkInit.sendToServer(new ServerboundSoundPacket(pos, SoundInit.FABRICATOR_FABRICATE.get()));
             return;
         }
 

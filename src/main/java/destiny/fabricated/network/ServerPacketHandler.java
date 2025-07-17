@@ -3,6 +3,8 @@ package destiny.fabricated.network;
 import destiny.fabricated.block_entities.FabricatorBlockEntity;
 import destiny.fabricated.blocks.FabricatorBlock;
 import destiny.fabricated.init.NetworkInit;
+import destiny.fabricated.menu.FabricatorBrowserCraftingMenu;
+import destiny.fabricated.menu.FabricatorCraftingMenu;
 import destiny.fabricated.network.packets.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.TickTask;
@@ -61,6 +63,11 @@ public class ServerPacketHandler
     {
         if(player.level().getBlockEntity(packet.pos) instanceof FabricatorBlockEntity fabricator)
         {
+            if(player.containerMenu instanceof FabricatorCraftingMenu menu)
+                menu.switching = true;
+            if(player.containerMenu instanceof FabricatorBrowserCraftingMenu menu)
+                menu.switching = true;
+
             packet.getMenu(fabricator).ifPresent(menu -> NetworkHooks.openScreen(player,
                     new SimpleMenuProvider(menu, fabricator.getBlockState().getBlock().getName()),
                     buf -> {

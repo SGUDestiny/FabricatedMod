@@ -26,11 +26,27 @@ public class FabricatorBrowserCraftingMenu extends AbstractContainerMenu
     public Level level;
     public List<FabricatorRecipeModuleItem.RecipeData> recipeTypes;
     public boolean switching;
+    public int type = -1;
     public int item = 0;
 
     public FabricatorBrowserCraftingMenu(int containerId, Inventory inventory, FriendlyByteBuf buffer)
     {
-        this(containerId, inventory, inventory.player.level().getBlockEntity(buffer.readBlockPos()));
+        this(containerId, inventory, inventory.player.level().getBlockEntity(buffer.readBlockPos()), buffer.readInt(), buffer.readInt());
+    }
+
+    public FabricatorBrowserCraftingMenu(int pContainerId, Inventory inventory, BlockEntity blockEntity, int type, int target)
+    {
+        super(MenuInit.FABRICATOR_BROWSER.get(), pContainerId);
+        this.blockEntity = ((FabricatorBlockEntity) blockEntity);
+        this.level = inventory.player.level();
+        this.recipeTypes = ((FabricatorBlockEntity) blockEntity).getRecipeTypes();
+        this.type = type;
+        this.item = target;
+
+        for (int i = 0; i < 9; ++i)
+        {
+            this.addSlot(new Slot(inventory, i, -10000, 0));
+        }
     }
 
     public FabricatorBrowserCraftingMenu(int pContainerId, Inventory inventory, BlockEntity blockEntity)

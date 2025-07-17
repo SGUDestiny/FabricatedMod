@@ -55,7 +55,7 @@ public class ServerboundBrowserMenuPacket
     public Optional<MenuConstructor> getMenu(FabricatorBlockEntity fabricator)
     {
         if(this.openBrowser)
-            return Optional.of((window, inventory, player) -> new FabricatorBrowserCraftingMenu(window, inventory, fabricator));
+            return Optional.of((window, inventory, player) -> new FabricatorBrowserCraftingMenu(window, inventory, fabricator, this.type, this.target));
         else
             return Optional.of((window, inventory, player) -> new FabricatorCraftingMenu(window, inventory, fabricator, this.type, this.target));
     }

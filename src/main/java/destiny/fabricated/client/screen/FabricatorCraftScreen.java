@@ -62,12 +62,15 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
         this.scrollAmount = pMenu.item;
 
         this.hasSelected = selectedType != -1;
-        if(this.hasSelected)
+        if(this.hasSelected && !menu.blockEntity.getRecipeTypes().isEmpty())
         {
             this.selectedTypeKey = ForgeRegistries.RECIPE_TYPES.getValue(menu.blockEntity.getRecipeTypes().get(selectedType).key.location());
             selectedType += 1;
             scrollAmount -= 1;
         }
+
+        if(scrollAmount < 0)
+            scrollAmount = 0;
     }
 
     @Override
@@ -165,18 +168,18 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
             pose.popPose();
         }
 
-        {
-            int x = baseX+122;
-            int y = baseY+(this.menu.recipeTypes.size()*22)+140;
-
-            pose.pushPose();
-            pose.translate(x, y, 0);
-            RenderBlitUtil.blit(RECIPE_BROWSER_BUTTON_TEXTURE, pose, 0, 0, 0, 0, 10, 10, 10, 10);
-            pose.popPose();
-        }
-
         if(hasSelected)
         {
+            {
+                int x = baseX+122;
+                int y = baseY+(this.menu.recipeTypes.size()*22)+140;
+
+                pose.pushPose();
+                pose.translate(x, y, 0);
+                RenderBlitUtil.blit(RECIPE_BROWSER_BUTTON_TEXTURE, pose, 0, 0, 0, 0, 10, 10, 10, 10);
+                pose.popPose();
+            }
+
             if(recipes.isEmpty())
             {
                 if (menu.blockEntity.getLevel().getGameTime() % 20 == 0)
@@ -474,11 +477,14 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
             @Override
             public void onPress()
             {
+                if(!hasSelected)
+                    return;
+
                 if(menu.blockEntity.getBlockState().getValue(FabricatorBlock.STATE).equals(FabricatorBlock.FabricatorState.FABRICATING))
                     return;
 
                 menu.switching = true;
-                ServerboundBrowserMenuPacket packet = new ServerboundBrowserMenuPacket(true, 0, 0, menu.blockEntity.getBlockPos());
+                ServerboundBrowserMenuPacket packet = new ServerboundBrowserMenuPacket(true, scrollAmount, selectedType-1, menu.blockEntity.getBlockPos());
                 NetworkInit.sendToServer(packet);
             }
 
@@ -540,7 +546,7 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
 
         List<Recipe<Container>> recipes = recipeManager.getAllRecipesFor(((RecipeType<Recipe<Container>>) recipeType));
 
-        this.recipes = filterCraftableRecipes(recipes, minecraft.player.getInventory());
+        this.recipes = recipes.stream().filter(recipe -> hasRequiredItems(minecraft.player.getInventory(), getItems(recipe), 1)).toList();
 
         this.recipes = this.recipes.stream().filter(entry -> !entry.getResultItem(Minecraft.getInstance().level.registryAccess()).isEmpty()).toList();
         this.recipes = this.recipes.stream().filter(entry -> !(entry.isSpecial())).toList();
@@ -611,7 +617,7 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
             int remaining = required.getCount();
 
             for (ItemStack invStack : simulatedInventory) {
-                if (!invStack.isEmpty() && ItemStack.isSameItemSameTags(invStack, required)) {
+                if (!invStack.isEmpty() && ItemStack.isSameItem(invStack, required)) {
                     int used = Math.min(remaining, invStack.getCount());
                     remaining -= used;
                     invStack.shrink(used);
@@ -634,7 +640,7 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
         return false;
     }
 
-    public List<ItemStack> getItems(Recipe<Container> recipe)
+    public static List<ItemStack> getItems(Recipe<Container> recipe)
     {
         List<ItemStack> items = new ArrayList<>();
         recipe.getIngredients().forEach(ingredient ->
