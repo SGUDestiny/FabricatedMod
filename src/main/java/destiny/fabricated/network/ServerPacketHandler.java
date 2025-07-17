@@ -11,6 +11,7 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.network.NetworkHooks;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ServerPacketHandler
@@ -19,13 +20,13 @@ public class ServerPacketHandler
     {
         if(player.level().getBlockEntity(packet.pos) instanceof FabricatorBlockEntity fabricator)
         {
-            ItemStack result = packet.result.copyWithCount(packet.result.getCount()*fabricator.batchValue);
+            ItemStack result = packet.result.copyWithCount(packet.result.getCount() * fabricator.batchValue);
 
-            ItemEntity itemEntity = new ItemEntity(player.level(), fabricator.getBlockPos().getCenter().x, fabricator.getBlockPos().getCenter().y, fabricator.getBlockPos().getCenter().z, result);
-            player.level().addFreshEntity(itemEntity);
-
-            for (int i = 0; i < fabricator.batchValue; i++)
-                ServerPacketHandler.consumeItemsFromInventory(player, packet.ingredients);
+            if (ServerPacketHandler.consumeItemsFromInventory(player, packet.ingredients, fabricator.batchValue))
+            {
+                ItemEntity itemEntity = new ItemEntity(player.level(), fabricator.getBlockPos().getCenter().x, fabricator.getBlockPos().getCenter().y, fabricator.getBlockPos().getCenter().z, result);
+                player.level().addFreshEntity(itemEntity);
+            }
         }
     }
 
@@ -81,11 +82,12 @@ public class ServerPacketHandler
         }
     }
 
-    public static void consumeItemsFromInventory(ServerPlayer player, List<ItemStack> requiredItems) {
+    public static boolean consumeItemsFromInventory(ServerPlayer player, List<ItemStack> requiredItems, int batch) {
+        List<Boolean> allTaken = new ArrayList<>();
         for (ItemStack required : requiredItems) {
             if (required.isEmpty()) continue;
 
-            int remaining = required.getCount();
+            int remaining = required.getCount()*batch;
 
             for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
                 ItemStack invStack = player.getInventory().getItem(i);
@@ -99,9 +101,14 @@ public class ServerPacketHandler
                     }
 
                     remaining -= toRemove;
-                    if (remaining <= 0) break;
+                    if (remaining <= 0)
+                    {
+                        allTaken.add(true);
+                        break;
+                    }
                 }
             }
         }
+        return allTaken.stream().allMatch(bool -> bool);
     }
 }
