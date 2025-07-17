@@ -113,9 +113,6 @@ public class FabricatorBrowserCraftScreen extends AbstractContainerScreen<Fabric
     @Override
     protected void renderBg(GuiGraphics graphics, float pPartialTick, int pMouseX, int pMouseY)
     {
-        if(menu.blockEntity.state == 3)
-            return;
-
         PoseStack pose = graphics.pose();
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);

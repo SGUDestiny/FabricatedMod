@@ -3,8 +3,10 @@ package destiny.fabricated.menu;
 import destiny.fabricated.block_entities.FabricatorBlockEntity;
 import destiny.fabricated.init.BlockInit;
 import destiny.fabricated.init.MenuInit;
+import destiny.fabricated.init.NetworkInit;
 import destiny.fabricated.items.FabricatorModuleItem;
 import destiny.fabricated.items.FabricatorRecipeModuleItem;
+import destiny.fabricated.network.packets.ServerboundFabricatorAnimPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceKey;
@@ -78,9 +80,7 @@ public class FabricatorCraftingMenu extends AbstractContainerMenu
     @Override
     public void removed(Player pPlayer)
     {
-        if(this.blockEntity.state != 3)
-            this.blockEntity.close(this.level, this.blockEntity.getBlockPos(), this.blockEntity);
-        this.blockEntity.isOpen = false;
+        blockEntity.close(level, blockEntity.getBlockPos());
     }
 
     @Override

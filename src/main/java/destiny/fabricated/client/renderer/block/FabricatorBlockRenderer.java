@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import destiny.fabricated.block_entities.FabricatorBlockEntity;
+import destiny.fabricated.blocks.FabricatorBlock;
 import destiny.fabricated.client.model.block.FabricatorModel;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -16,6 +17,8 @@ import software.bernie.geckolib.renderer.GeoBlockRenderer;
 public class FabricatorBlockRenderer extends GeoBlockRenderer<FabricatorBlockEntity>
 {
     private ItemRenderer itemRenderer;
+    private int fabricatingTicker = 0;
+
     public FabricatorBlockRenderer()
     {
         super(new FabricatorModel());
@@ -30,24 +33,30 @@ public class FabricatorBlockRenderer extends GeoBlockRenderer<FabricatorBlockEnt
     {
         super.actuallyRender(poseStack, fabricator, model, renderType, bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay, red, green, blue, alpha);
 
+        if(fabricator.getBlockState().getValue(FabricatorBlock.STATE).equals(FabricatorBlock.FabricatorState.FABRICATING))
+            fabricatingTicker++;
+        if(fabricatingTicker > 62.5)
+            fabricatingTicker = 0;
+
         if(fabricator.craftStack.isEmpty())
             return;
 
         poseStack.pushPose();
 
-        float animTime = fabricator.fabricationCounter+partialTick;
+        float animTime = fabricator.fabricatingTicker+partialTick;
 
         float timeUp = 12.5f;
         float timeDown = 50f;
         float speedUp = 0.328125f / timeUp;
         float speedDown = 0.328125f / timeDown;
 
-        poseStack.translate(0, 0.3125, 0.09375);
-        if(fabricator.fabricationStep == 1)
+        poseStack.translate(0, 0.4, 0.09375);
+        if(fabricator.fabricatingTicker <= timeUp)
         {
             poseStack.translate(0, speedUp * animTime, 0);
         }
-        if(fabricator.fabricationStep == 2)
+
+        if(fabricator.fabricatingTicker > timeUp && fabricator.fabricatingTicker <= timeDown)
         {
             poseStack.translate(0, (speedUp * 12.5f)-(speedDown*animTime), 0);
         }
@@ -61,7 +70,7 @@ public class FabricatorBlockRenderer extends GeoBlockRenderer<FabricatorBlockEnt
 
         poseStack.scale(0.5f, 0.5f, 0.5f);
 
-        if(fabricator.fabricationStep == 2)
+        if(fabricator.fabricatingTicker > timeUp && fabricator.fabricatingTicker <= timeDown)
             this.itemRenderer.renderStatic(fabricator.craftStack, ItemDisplayContext.FIXED, packedLight, packedOverlay, poseStack, bufferSource, fabricator.getLevel(), 0);
 
         poseStack.popPose();

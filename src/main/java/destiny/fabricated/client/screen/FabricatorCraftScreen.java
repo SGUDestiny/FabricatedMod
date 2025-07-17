@@ -121,17 +121,12 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
     @Override
     protected void renderBg(GuiGraphics graphics, float pPartialTick, int pMouseX, int pMouseY)
     {
-        if(menu.blockEntity.fabricationStep == 2 && menu.blockEntity.fabricationCounter >= 47 && hasSelected)
-            recipeStuff(selectedTypeKey);
-
         if(menu.blockEntity.batchValue == 0)
         {
             recipeStuff(selectedTypeKey);
             menu.blockEntity.batchValue = 1;
         }
 
-        if(menu.blockEntity.state == 3)
-            return;
 
         PoseStack pose = graphics.pose();
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
@@ -403,7 +398,6 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
             public void onPress()
             {
                 if (!hasSelected) return;
-                if (menu.blockEntity.state == 3) return;
                 if (recipes.isEmpty()) return;
 
                 List<Ingredient> ingredients = recipes.get(scrollAmount).getIngredients();
@@ -411,7 +405,7 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
 
                 ItemStack stackToCraft = recipes.get(scrollAmount).getResultItem(Minecraft.getInstance().level.registryAccess());
                 if(hasRequiredItems(minecraft.player.getInventory(), fancyGetItems(inventory, ingredients), menu.blockEntity.batchValue))
-                    menu.blockEntity.fabricate(menu.level, menu.blockEntity.getBlockPos(), menu.blockEntity, stackToCraft, fancyGetItems(inventory, ingredients));
+                    menu.blockEntity.fabricate(menu.level, menu.blockEntity.getBlockPos(), stackToCraft, fancyGetItems(inventory, ingredients));
             }
 
             @Override
