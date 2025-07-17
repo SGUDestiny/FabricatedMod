@@ -21,7 +21,7 @@ public class FabricatorBlockRenderer extends GeoBlockRenderer<FabricatorBlockEnt
     public FabricatorBlockRenderer()
     {
         super(new FabricatorModel());
-        this.addRenderLayer(new AutoGlowingGeoLayer<>(this));
+        //this.addRenderLayer(new AutoGlowingGeoLayer<>(this));
         this.itemRenderer = Minecraft.getInstance().getItemRenderer();
     }
 
