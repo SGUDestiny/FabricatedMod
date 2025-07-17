@@ -52,7 +52,7 @@ public class FabricatorCraftingMenu extends AbstractContainerMenu
         this.type = -1;
         this.item = 0;
 
-        for (int i = 0; i < 9; ++i)
+        for (int i = 0; i < 36; ++i)
         {
             this.addSlot(new Slot(inventory, i, -10000, 0));
         }
