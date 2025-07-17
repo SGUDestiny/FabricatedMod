@@ -39,12 +39,13 @@ public class ServerPacketHandler
 
             if(packet.anim.equals("open"))
                 level.setBlock(pos, state.setValue(FabricatorBlock.STATE, FabricatorBlock.FabricatorState.OPEN), 2);
-            if(packet.anim.equals("close"))
+            if(packet.anim.equals("close") && !packet.closeAfterCraft)
                 level.setBlock(pos, state.setValue(FabricatorBlock.STATE, FabricatorBlock.FabricatorState.CLOSED), 2);
             if(packet.anim.equals("fabricate"))
                 level.setBlock(pos, state.setValue(FabricatorBlock.STATE, FabricatorBlock.FabricatorState.FABRICATING), 2);
 
-            fabricator.triggerAnim("main", packet.anim);
+            if(!packet.closeAfterCraft)
+                fabricator.triggerAnim("main", packet.anim);
         }
     }
 

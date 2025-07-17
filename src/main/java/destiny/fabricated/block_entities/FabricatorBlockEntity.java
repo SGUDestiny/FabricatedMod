@@ -46,6 +46,7 @@ import software.bernie.geckolib.core.animation.AnimationController;
 import software.bernie.geckolib.core.animation.AnimationState;
 import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.renderer.layer.AutoGlowingGeoLayer;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.*;
@@ -95,7 +96,13 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
 
     public void clientTick()
     {
+        if(this.getBlockState().getValue(FabricatorBlock.STATE).equals(FabricatorBlock.FabricatorState.FABRICATING))
+        {
+            fabricatingTicker++;
+        }
 
+        if(fabricatingTicker > 60)
+            fabricatingTicker = 0;
     }
 
     public void serverTick()
@@ -115,7 +122,7 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
             this.fabricatingTicker = 0;
             this.craftStack = ItemStack.EMPTY;
             if(closeAfterCraft)
-                close(level, getBlockPos());
+                close(level, getBlockPos(), false);
             else
             {
                 triggerAnim("main", "open_idle");
@@ -178,7 +185,25 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
 
         if(this.level != null && this.level.isClientSide())
             NetworkInit.sendToServer(new ServerboundFabricationBatchPacket(this.getBlockPos(), batchValue));
-        setChanged();
+        markUpdated();
+    }
+
+    public void setBatch(int amount)
+    {
+        this.batchValue = amount;
+        if(batchValue < 1)
+            batchValue = 1;
+
+        if(batchValue < 1)
+            batchValue = 1;
+
+        int maxValue = maxBatch();
+        if(batchValue > maxValue)
+            batchValue = maxValue;
+
+        if(this.level != null && this.level.isClientSide())
+            NetworkInit.sendToServer(new ServerboundFabricationBatchPacket(this.getBlockPos(), batchValue));
+        markUpdated();
     }
 
     public int maxBatch()
@@ -198,35 +223,43 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
     {
         if(level.isClientSide())
         {
-            NetworkInit.sendToServer(new ServerboundFabricatorAnimPacket(pos, "open"));
+            NetworkInit.sendToServer(new ServerboundFabricatorAnimPacket(pos, "open", false));
             return;
         }
 
         level.playSound(null, pos, SoundInit.FABRICATOR_OPEN.get(), SoundSource.BLOCKS);
+        level.setBlock(pos, getBlockState().setValue(FabricatorBlock.STATE, FabricatorBlock.FabricatorState.OPEN), 2);
         triggerAnim("main", "open");
     }
 
-    public void close(Level level, BlockPos pos)
+    public void close(Level level, BlockPos pos, boolean closeAfterCraft)
     {
+        this.closeAfterCraft = closeAfterCraft;
         if(level.isClientSide())
         {
-            NetworkInit.sendToServer(new ServerboundFabricatorAnimPacket(pos, "close"));
+            NetworkInit.sendToServer(new ServerboundFabricatorAnimPacket(pos, "close", closeAfterCraft));
             return;
         }
 
-        level.playSound(null, pos, SoundInit.FABRICATOR_CLOSE.get(), SoundSource.BLOCKS);
-        triggerAnim("main", "close");
+        if(!closeAfterCraft)
+        {
+            level.playSound(null, pos, SoundInit.FABRICATOR_CLOSE.get(), SoundSource.BLOCKS);
+
+            level.setBlock(pos, getBlockState().setValue(FabricatorBlock.STATE, FabricatorBlock.FabricatorState.CLOSED), 2);
+            triggerAnim("main", "close");
+        }
     }
 
     public void fabricate(Level level, BlockPos pos, ItemStack stack, List<ItemStack> ingredients)
     {
         if(level.isClientSide())
         {
-            NetworkInit.sendToServer(new ServerboundFabricatorAnimPacket(pos, "fabricate"));
+            NetworkInit.sendToServer(new ServerboundFabricatorAnimPacket(pos, "fabricate", false));
             NetworkInit.sendToServer(new ServerboundFabricatorCraftItemPacket(pos, stack, ingredients));
             return;
         }
 
+        level.setBlock(pos, getBlockState().setValue(FabricatorBlock.STATE, FabricatorBlock.FabricatorState.FABRICATING), 2);
         triggerAnim("main", "fabricate");
     }
 

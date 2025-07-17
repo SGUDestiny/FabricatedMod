@@ -54,7 +54,7 @@ public class FabricatorBrowserCraftingMenu extends AbstractContainerMenu
     @Override
     public void removed(Player pPlayer)
     {
-        NetworkInit.sendToServer(new ServerboundFabricatorAnimPacket(blockEntity.getBlockPos(), "close"));
+        blockEntity.close(level, blockEntity.getBlockPos(), false);
     }
 
     @Override

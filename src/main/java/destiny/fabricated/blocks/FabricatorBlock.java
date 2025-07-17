@@ -82,6 +82,9 @@ public class FabricatorBlock extends BaseEntityBlock implements SimpleWaterlogge
     public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
         if (pLevel.getBlockEntity(pPos) instanceof FabricatorBlockEntity fabricator)
         {
+            if(pState.getValue(FabricatorBlock.STATE).equals(FabricatorState.FABRICATING))
+                return InteractionResult.PASS;
+
             if (pPlayer.isCrouching())
             {
                 fabricator.openUpgradesMenu(pPlayer, pLevel, pPos, fabricator);
@@ -152,6 +155,15 @@ public class FabricatorBlock extends BaseEntityBlock implements SimpleWaterlogge
         Direction blockDirection = pState.getValue(FACING);
         Block parentBlock = pLevel.getBlockState(pPos.relative(blockDirection.getOpposite())).getBlock();
         return !parentBlock.equals(Blocks.AIR);
+    }
+
+    @Override
+    public float getDestroyProgress(BlockState pState, Player pPlayer, BlockGetter pLevel, BlockPos pPos)
+    {
+        if(pState.getValue(STATE).equals(FabricatorState.FABRICATING))
+            return 0.0F;
+
+        return super.getDestroyProgress(pState, pPlayer, pLevel, pPos);
     }
 
     @Override

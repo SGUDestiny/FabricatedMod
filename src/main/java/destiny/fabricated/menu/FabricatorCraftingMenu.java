@@ -1,6 +1,7 @@
 package destiny.fabricated.menu;
 
 import destiny.fabricated.block_entities.FabricatorBlockEntity;
+import destiny.fabricated.blocks.FabricatorBlock;
 import destiny.fabricated.init.BlockInit;
 import destiny.fabricated.init.MenuInit;
 import destiny.fabricated.init.NetworkInit;
@@ -80,7 +81,7 @@ public class FabricatorCraftingMenu extends AbstractContainerMenu
     @Override
     public void removed(Player pPlayer)
     {
-        blockEntity.close(level, blockEntity.getBlockPos());
+        blockEntity.close(level, blockEntity.getBlockPos(), blockEntity.getBlockState().getValue(FabricatorBlock.STATE).equals(FabricatorBlock.FabricatorState.FABRICATING));
     }
 
     @Override
