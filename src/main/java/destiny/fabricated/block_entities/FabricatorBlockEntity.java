@@ -31,6 +31,8 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.BlastingRecipe;
+import net.minecraft.world.item.crafting.SmeltingRecipe;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -102,7 +104,11 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
         }
 
         if(fabricatingTicker > 60)
+        {
             fabricatingTicker = 0;
+            if(Minecraft.getInstance().screen instanceof FabricatorCraftScreen craftScreen)
+                craftScreen.recipeStuff(craftScreen.selectedTypeKey);
+        }
     }
 
     public void serverTick()
@@ -256,6 +262,7 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
         {
             NetworkInit.sendToServer(new ServerboundFabricatorAnimPacket(pos, "fabricate", false));
             NetworkInit.sendToServer(new ServerboundFabricatorCraftItemPacket(pos, stack, ingredients));
+
             return;
         }
 
@@ -358,14 +365,14 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
                                     {
                                         List<RecipeData> upgradeRecipes = recipeModule.getRecipeTypes(upgradeStack);
                                         RecipeData stackRecipe = stackRecipes.get(i);
-                                        RecipeData upgradeRecipe = upgradeRecipes.get(i);
+                                        RecipeData upgradeRecipe = upgradeRecipes.get(j);
 
                                         if(stackRecipe.key.equals(upgradeRecipe.key))
                                             return true;
 
                                     }
                                 }
-                                return true;
+                                return false;
                             }
                             return false;
                         });

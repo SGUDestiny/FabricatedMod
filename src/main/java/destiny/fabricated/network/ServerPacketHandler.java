@@ -68,6 +68,9 @@ public class ServerPacketHandler
                 buf.writeInt(packet.type);
                 buf.writeInt(packet.target);
                     }));
+
+            fabricator.triggerAnim("main", "open_idle");
+            player.level().setBlock(packet.pos, fabricator.getBlockState().setValue(FabricatorBlock.STATE, FabricatorBlock.FabricatorState.OPEN), 2);
         }
     }
 

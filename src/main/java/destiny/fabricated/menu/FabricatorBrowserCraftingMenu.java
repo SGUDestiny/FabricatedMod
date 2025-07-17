@@ -25,6 +25,7 @@ public class FabricatorBrowserCraftingMenu extends AbstractContainerMenu
     public FabricatorBlockEntity blockEntity;
     public Level level;
     public List<FabricatorRecipeModuleItem.RecipeData> recipeTypes;
+    public boolean switching;
     public int item = 0;
 
     public FabricatorBrowserCraftingMenu(int containerId, Inventory inventory, FriendlyByteBuf buffer)
@@ -54,6 +55,9 @@ public class FabricatorBrowserCraftingMenu extends AbstractContainerMenu
     @Override
     public void removed(Player pPlayer)
     {
+        if(switching)
+            return;
+
         blockEntity.close(level, blockEntity.getBlockPos(), false);
     }
 

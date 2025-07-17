@@ -179,10 +179,10 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
         {
             if(recipes.isEmpty())
             {
-                recipeStuff(selectedTypeKey);
+                if (menu.blockEntity.getLevel().getGameTime() % 20 == 0)
+                    recipeStuff(selectedTypeKey);
                 return;
             }
-
             if(minecraft.level.getGameTime() % 2 == 0)
             {
                 if(menu.blockEntity.batchValue > menu.blockEntity.maxBatch())
@@ -414,7 +414,9 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
 
                 ItemStack stackToCraft = recipes.get(scrollAmount).getResultItem(Minecraft.getInstance().level.registryAccess());
                 if(hasRequiredItems(minecraft.player.getInventory(), fancyGetItems(inventory, ingredients), menu.blockEntity.batchValue))
+                {
                     menu.blockEntity.fabricate(menu.level, menu.blockEntity.getBlockPos(), stackToCraft, fancyGetItems(inventory, ingredients));
+                }
             }
 
             @Override
@@ -475,6 +477,7 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
                 if(menu.blockEntity.getBlockState().getValue(FabricatorBlock.STATE).equals(FabricatorBlock.FabricatorState.FABRICATING))
                     return;
 
+                menu.switching = true;
                 ServerboundBrowserMenuPacket packet = new ServerboundBrowserMenuPacket(true, 0, 0, menu.blockEntity.getBlockPos());
                 NetworkInit.sendToServer(packet);
             }

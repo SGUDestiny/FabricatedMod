@@ -35,6 +35,7 @@ public class FabricatorCraftingMenu extends AbstractContainerMenu
     public Level level;
     public List<FabricatorRecipeModuleItem.RecipeData> recipeTypes;
     public int item;
+    public boolean switching;
     public int type;
 
     public FabricatorCraftingMenu(int containerId, Inventory inventory, FriendlyByteBuf buffer)
@@ -81,6 +82,9 @@ public class FabricatorCraftingMenu extends AbstractContainerMenu
     @Override
     public void removed(Player pPlayer)
     {
+        if(switching)
+            return;
+
         blockEntity.close(level, blockEntity.getBlockPos(), blockEntity.getBlockState().getValue(FabricatorBlock.STATE).equals(FabricatorBlock.FabricatorState.FABRICATING));
     }
 
