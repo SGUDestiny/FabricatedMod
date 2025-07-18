@@ -129,8 +129,8 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
         if(menu.blockEntity.getBlockState().getValue(FabricatorBlock.STATE).equals(FabricatorBlock.FabricatorState.FABRICATING))
             return;
 
-        if(selectedType > menu.recipeTypes.size())
-            selectedType = menu.recipeTypes.size();
+        if(selectedType >= menu.recipeTypes.size())
+            selectedType = 0;
 
         if(menu.blockEntity.batchValue == 0)
         {
@@ -174,7 +174,7 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
 
         if(hasSelected)
         {
-            if(scrollAmount > recipes.size())
+            if(scrollAmount >= recipes.size())
                 scrollAmount = 0;
 
             {
