@@ -341,16 +341,18 @@ public class FabricatorBrowserCraftScreen extends AbstractContainerScreen<Fabric
 
     public <T extends Recipe<?>> void recipeStuff(RecipeType<T> recipeType)
     {
-        RecipeManager recipeManager = Objects.requireNonNull(Minecraft.getInstance().level).getRecipeManager();
+        if(Minecraft.getInstance().level == null || Minecraft.getInstance().player == null)
+            return;
 
-        List<Recipe<Container>> recipes = recipeManager.getAllRecipesFor(((RecipeType<Recipe<Container>>) recipeType));
+        RecipeManager recipeManager = Minecraft.getInstance().level.getRecipeManager();
+        List<Recipe<Container>> recipeList = recipeManager.getAllRecipesFor(((RecipeType<Recipe<Container>>) recipeType));
 
-        this.recipes = recipes.stream().filter(recipe -> hasRequiredItems(minecraft.player.getInventory(), getItems(recipe), 1)).toList();
+        HashSet<Recipe<Container>> recipeHash = new HashSet<>(recipeList);
 
-        this.recipes = this.recipes.stream().filter(entry -> !entry.getResultItem(Minecraft.getInstance().level.registryAccess()).isEmpty()).toList();
-        this.recipes = this.recipes.stream().filter(entry -> !(entry.isSpecial())).toList();
+        recipeHash.removeIf(recipe -> !hasRequiredItems(Minecraft.getInstance().player.getInventory(), getItems(recipe), 1)
+                || recipe.getResultItem(Minecraft.getInstance().level.registryAccess()).isEmpty() || recipe.isSpecial());
 
-        this.recipes = this.recipes.stream().sorted(Comparator.comparing(recipe -> recipe.getResultItem(Minecraft.getInstance().level.registryAccess()).getDisplayName().getString())).toList();
+        this.recipes = new ArrayList<>(recipeHash);
     }
 
     public int getPageCount()
