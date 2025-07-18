@@ -68,11 +68,6 @@ minecraft {
     }
 }
 
-mixin {
-    config 'fabricated.mixins.json'
-    add sourceSets.main, 'fabricated.refmap.json'
-}
-
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 repositories {
