@@ -131,6 +131,8 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
                 close(level, getBlockPos(), false);
             else
             {
+                NetworkInit.sendToTracking(this, new ClientboundFabricatorRecalcRecipesPacket());
+
                 triggerAnim("main", "open_idle");
                 level.setBlock(getBlockPos(), getBlockState().setValue(FabricatorBlock.STATE, FabricatorBlock.FabricatorState.OPEN), 2);
             }

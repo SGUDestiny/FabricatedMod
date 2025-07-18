@@ -7,11 +7,9 @@ import destiny.fabricated.menu.FabricatorBrowserCraftingMenu;
 import destiny.fabricated.menu.FabricatorCraftingMenu;
 import destiny.fabricated.network.packets.*;
 import net.minecraft.core.BlockPos;
-import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.SimpleMenuProvider;
-import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -76,7 +74,7 @@ public class ServerPacketHandler
                 buf.writeInt(packet.target);
                     }));
 
-            NetworkInit.sendToTracking(player, new ClientboundFabricatorMenuChangePacket());
+            NetworkInit.sendToTracking(player, new ClientboundFabricatorRecalcRecipesPacket());
 
             fabricator.triggerAnim("main", "open_idle");
             player.level().setBlock(packet.pos, fabricator.getBlockState().setValue(FabricatorBlock.STATE, FabricatorBlock.FabricatorState.OPEN), 2);
