@@ -12,10 +12,12 @@ public class ClientPacketHandler
         Minecraft minecraft = Minecraft.getInstance();
         if(minecraft.level != null && minecraft.player != null)
         {
+            minecraft.player.getInventory().add(packet.pickedUp);
             if(minecraft.screen instanceof FabricatorCraftScreen screen)
                 screen.recipeStuff(screen.selectedTypeKey);
             if(minecraft.screen instanceof FabricatorBrowserCraftScreen screen)
                 screen.recipeStuff(screen.selectedTypeKey);
+            minecraft.player.getInventory().removeItem(packet.pickedUp);
         }
     }
 }

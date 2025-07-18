@@ -20,12 +20,16 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.Container;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -44,6 +48,9 @@ import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.*;
+
+import static destiny.fabricated.client.screen.FabricatorCraftScreen.getItems;
+import static destiny.fabricated.client.screen.FabricatorCraftScreen.hasRequiredItems;
 
 public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
 {
@@ -123,7 +130,7 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
                 close(level, getBlockPos(), false);
             else
             {
-                NetworkInit.sendToTracking(this, new ClientboundFabricatorRecalcRecipesPacket());
+                NetworkInit.sendToTracking(this, new ClientboundFabricatorRecalcRecipesPacket(ItemStack.EMPTY));
 
                 triggerAnim("main", "open_idle");
                 level.setBlock(getBlockPos(), getBlockState().setValue(FabricatorBlock.STATE, FabricatorBlock.FabricatorState.OPEN), 2);

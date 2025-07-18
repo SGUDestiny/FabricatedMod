@@ -74,7 +74,7 @@ public class ServerPacketHandler
                 buf.writeInt(packet.target);
                     }));
 
-            NetworkInit.sendToTracking(player, new ClientboundFabricatorRecalcRecipesPacket());
+            NetworkInit.sendToTracking(player, new ClientboundFabricatorRecalcRecipesPacket(ItemStack.EMPTY));
 
             fabricator.triggerAnim("main", "open_idle");
             player.level().setBlock(packet.pos, fabricator.getBlockState().setValue(FabricatorBlock.STATE, FabricatorBlock.FabricatorState.OPEN), 2);

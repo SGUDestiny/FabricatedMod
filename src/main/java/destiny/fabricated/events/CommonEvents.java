@@ -17,14 +17,7 @@ public class CommonEvents
     @SubscribeEvent
     public static void pickupItem(PlayerEvent.ItemPickupEvent event)
     {
-        Minecraft minecraft = Minecraft.getInstance();
-        if(minecraft.level != null && minecraft.level.isClientSide())
-        {
-            if(minecraft.screen instanceof FabricatorCraftScreen screen)
-                screen.recipeStuff(screen.selectedTypeKey);
-            if(minecraft.screen instanceof FabricatorBrowserCraftScreen screen)
-                screen.recipeStuff(screen.selectedTypeKey);
-        }
-        else NetworkInit.sendTo((ServerPlayer) event.getEntity(), new ClientboundFabricatorRecalcRecipesPacket());
+        if (!event.getEntity().level().isClientSide())
+            NetworkInit.sendTo((ServerPlayer) event.getEntity(), new ClientboundFabricatorRecalcRecipesPacket(event.getStack()));
     }
 }
