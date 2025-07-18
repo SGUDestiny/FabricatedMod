@@ -1,19 +1,27 @@
 package destiny.fabricated.client.renderer.block;
 
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.math.Axis;
 import destiny.fabricated.block_entities.FabricatorBlockEntity;
 import destiny.fabricated.blocks.FabricatorBlock;
 import destiny.fabricated.client.model.block.FabricatorModel;
+import destiny.fabricated.client.renderer.FabricatorRenderTypes;
+import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemDisplayContext;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
+import software.bernie.geckolib.cache.texture.AutoGlowingTexture;
+import software.bernie.geckolib.cache.texture.GeoAbstractTexture;
 import software.bernie.geckolib.renderer.GeoBlockRenderer;
 import software.bernie.geckolib.renderer.layer.AutoGlowingGeoLayer;
+
+import java.util.function.Function;
 
 public class FabricatorBlockRenderer extends GeoBlockRenderer<FabricatorBlockEntity>
 {
@@ -21,7 +29,14 @@ public class FabricatorBlockRenderer extends GeoBlockRenderer<FabricatorBlockEnt
     public FabricatorBlockRenderer()
     {
         super(new FabricatorModel());
-        //this.addRenderLayer(new AutoGlowingGeoLayer<>(this));
+        this.addRenderLayer(new AutoGlowingGeoLayer<>(this)
+        {
+            @Override
+            protected RenderType getRenderType(FabricatorBlockEntity animatable)
+            {
+                return FabricatorRenderTypes.fabricatorGlow(GeoAbstractTexture.appendToPath(getTextureResource(animatable), "_glowmask"));
+            }
+        });
         this.itemRenderer = Minecraft.getInstance().getItemRenderer();
     }
 
@@ -69,7 +84,5 @@ public class FabricatorBlockRenderer extends GeoBlockRenderer<FabricatorBlockEnt
             this.itemRenderer.renderStatic(fabricator.craftStack, ItemDisplayContext.FIXED, packedLight, packedOverlay, poseStack, bufferSource, fabricator.getLevel(), 0);
 
         poseStack.popPose();
-
-
     }
 }
