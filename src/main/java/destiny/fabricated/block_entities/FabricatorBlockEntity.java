@@ -251,10 +251,8 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
         {
             level.setBlock(pos, getBlockState().setValue(FabricatorBlock.STATE, FabricatorBlock.FabricatorState.CLOSED), 2);
             triggerAnim("main", "close");
+            level.playSound(null, pos, SoundInit.FABRICATOR_CLOSE.get(), SoundSource.BLOCKS);
         }
-
-        level.playSound(null, pos, SoundInit.FABRICATOR_CLOSE.get(), SoundSource.BLOCKS);
-
     }
 
     public void fabricate(Level level, BlockPos pos, ItemStack stack, List<ItemStack> ingredients)

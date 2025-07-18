@@ -28,4 +28,16 @@ public class FabricatorRenderTypes extends RenderType
                         .setCullState(CULL)
                         .createCompositeState(true));
     }
+
+    public static RenderType fabricatingItem(ResourceLocation rl)
+    {
+        return create("fabricating_item", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 256, false, true,
+                RenderType.CompositeState.builder()
+                        .setShaderState(RenderStateShard.RENDERTYPE_ENERGY_SWIRL_SHADER)
+                        .setTextureState(new RenderStateShard.TextureStateShard(rl, false, true))
+                        .setLightmapState(LIGHTMAP).setCullState(RenderStateShard.NO_CULL)
+                        .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
+                        .setDepthTestState(LEQUAL_DEPTH_TEST)
+                        .createCompositeState(true));
+    }
 }

@@ -347,12 +347,14 @@ public class FabricatorBrowserCraftScreen extends AbstractContainerScreen<Fabric
         RecipeManager recipeManager = Minecraft.getInstance().level.getRecipeManager();
         List<Recipe<Container>> recipeList = recipeManager.getAllRecipesFor(((RecipeType<Recipe<Container>>) recipeType));
 
-        HashSet<Recipe<Container>> recipeHash = new HashSet<>(recipeList);
+        HashSet<Recipe<Container>> recipeSet = new HashSet<>(recipeList);
 
-        recipeHash.removeIf(recipe -> !hasRequiredItems(Minecraft.getInstance().player.getInventory(), getItems(recipe), 1)
+        recipeSet.removeIf(recipe -> !hasRequiredItems(Minecraft.getInstance().player.getInventory(), getItems(recipe), 1)
                 || recipe.getResultItem(Minecraft.getInstance().level.registryAccess()).isEmpty() || recipe.isSpecial());
 
-        this.recipes = new ArrayList<>(recipeHash);
+        this.recipes = new ArrayList<>(recipeSet);
+        this.recipes.sort(Comparator.comparing(recipe ->
+                recipe.getResultItem(Minecraft.getInstance().level.registryAccess()).getDisplayName().getString()));
     }
 
     public int getPageCount()

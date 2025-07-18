@@ -24,6 +24,7 @@ import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.SortedArraySet;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.Item;
@@ -554,12 +555,13 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
         RecipeManager recipeManager = Minecraft.getInstance().level.getRecipeManager();
         List<Recipe<Container>> recipeList = recipeManager.getAllRecipesFor(((RecipeType<Recipe<Container>>) recipeType));
 
-        HashSet<Recipe<Container>> recipeHash = new HashSet<>(recipeList);
+        HashSet<Recipe<Container>> recipeSet = new HashSet<>(recipeList);
 
-        recipeHash.removeIf(recipe -> !hasRequiredItems(Minecraft.getInstance().player.getInventory(), getItems(recipe), 1)
-        || recipe.getResultItem(Minecraft.getInstance().level.registryAccess()).isEmpty() || recipe.isSpecial());
+        recipeSet.removeIf(recipe -> !hasRequiredItems(Minecraft.getInstance().player.getInventory(), getItems(recipe), 1)
+                || recipe.getResultItem(Minecraft.getInstance().level.registryAccess()).isEmpty() || recipe.isSpecial());
 
-        this.recipes = new ArrayList<>(recipeHash);
+        this.recipes = new ArrayList<>(recipeSet);
+        this.recipes.sort(Comparator.comparing(recipe -> recipe.getResultItem(Minecraft.getInstance().level.registryAccess()).getDisplayName().getString()));
     }
 
     public static int getMaxCraft(Recipe<?> recipe, Inventory playerInventory) {
