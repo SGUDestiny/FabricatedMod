@@ -87,6 +87,7 @@ public class FabricatorBlockRenderer extends GeoBlockRenderer<FabricatorBlockEnt
         {
             poseStack.translate(0,0.02, 0);
             poseStack.mulPose(Axis.XP.rotationDegrees(90));
+            poseStack.scale(2f, 2f, 2f);
         }
         else poseStack.translate(0, 0.125, 0);
 
