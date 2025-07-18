@@ -43,7 +43,7 @@ public class FabricatorBrowserCraftingMenu extends AbstractContainerMenu
         this.type = type;
         this.item = target;
 
-        for (int i = 0; i < 9; ++i)
+        for (int i = 0; i < 36; ++i)
         {
             this.addSlot(new Slot(inventory, i, -10000, 0));
         }
@@ -56,7 +56,7 @@ public class FabricatorBrowserCraftingMenu extends AbstractContainerMenu
         this.level = inventory.player.level();
         this.recipeTypes = ((FabricatorBlockEntity) blockEntity).getRecipeTypes();
 
-        for (int i = 0; i < 9; ++i)
+        for (int i = 0; i < 36; ++i)
         {
             this.addSlot(new Slot(inventory, i, -10000, 0));
         }
