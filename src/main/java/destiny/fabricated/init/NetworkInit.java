@@ -23,6 +23,8 @@ public class NetworkInit
         INSTANCE.registerMessage(id(), ServerboundFabricatorAnimPacket.class, ServerboundFabricatorAnimPacket::write, ServerboundFabricatorAnimPacket::read, ServerboundFabricatorAnimPacket::handle);
         INSTANCE.registerMessage(id(), ServerboundFabricatorCraftItemPacket.class, ServerboundFabricatorCraftItemPacket::write, ServerboundFabricatorCraftItemPacket::read, ServerboundFabricatorCraftItemPacket::handle);
 
+        INSTANCE.registerMessage(id(), ClientboundFabricatorMenuChangePacket.class, ClientboundFabricatorMenuChangePacket::write, ClientboundFabricatorMenuChangePacket::read, ClientboundFabricatorMenuChangePacket::handle);
+
         INSTANCE.registerMessage(id(), ServerboundSoundPacket.class, ServerboundSoundPacket::write, ServerboundSoundPacket::read, ServerboundSoundPacket::handle);
         INSTANCE.registerMessage(id(), ServerboundFabricationBatchPacket.class, ServerboundFabricationBatchPacket::write, ServerboundFabricationBatchPacket::read, ServerboundFabricationBatchPacket::handle);
         INSTANCE.registerMessage(id(), ServerboundBrowserMenuPacket.class, ServerboundBrowserMenuPacket::write, ServerboundBrowserMenuPacket::read, ServerboundBrowserMenuPacket::handle);
