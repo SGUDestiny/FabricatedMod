@@ -278,6 +278,12 @@ public class FabricatorBrowserCraftScreen extends AbstractContainerScreen<Fabric
             {
                 defaultButtonNarrationText(pNarrationElementOutput);
             }
+
+            @Override
+            public void playDownSound(SoundManager pHandler)
+            {
+                pHandler.play(SimpleSoundInstance.forUI(SoundInit.FABRICATOR_BUTTON.get(), 1.0F));
+            }
         };
     }
 
