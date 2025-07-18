@@ -59,7 +59,8 @@ public class ClientEvents {
 
         if(event.getTabKey().equals(CreativeModeTabs.TOOLS_AND_UTILITIES))
         {
-            event.accept(FabricatorRecipeModuleItem.createDefault(ItemInit.FABRICATOR_RECIPE_MODULE.get()));
+            event.accept(FabricatorRecipeModuleItem.createCrafting(ItemInit.FABRICATOR_RECIPE_MODULE.get()));
+            event.accept(FabricatorRecipeModuleItem.createSmelting(ItemInit.FABRICATOR_RECIPE_MODULE.get()));
 
             event.accept(FabricatorBulkModuleItem.create(ItemInit.FABRICATOR_BULK_MODULE_1.get(), 16));
             event.accept(FabricatorBulkModuleItem.create(ItemInit.FABRICATOR_BULK_MODULE_2.get(), 32));
