@@ -24,7 +24,6 @@ import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.SortedArraySet;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.Item;
@@ -34,8 +33,6 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static destiny.fabricated.client.screen.FabricatorBrowserCraftScreen.filterCraftableRecipes;
 
 public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCraftingMenu>
 {

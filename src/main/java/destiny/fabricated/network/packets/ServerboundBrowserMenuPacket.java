@@ -6,7 +6,6 @@ import destiny.fabricated.menu.FabricatorCraftingMenu;
 import destiny.fabricated.network.ServerPacketHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.MenuProvider;
 import net.minecraft.world.inventory.MenuConstructor;
 import net.minecraftforge.network.NetworkEvent;
 

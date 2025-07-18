@@ -3,7 +3,6 @@ package destiny.fabricated.menu;
 import destiny.fabricated.block_entities.FabricatorBlockEntity;
 import destiny.fabricated.init.BlockInit;
 import destiny.fabricated.init.MenuInit;
-import destiny.fabricated.items.FabricatorBulkModuleItem;
 import destiny.fabricated.items.FabricatorModuleItem;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.Container;

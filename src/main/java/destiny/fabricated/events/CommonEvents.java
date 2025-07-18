@@ -3,8 +3,10 @@ package destiny.fabricated.events;
 import destiny.fabricated.FabricatedMod;
 import destiny.fabricated.client.screen.FabricatorBrowserCraftScreen;
 import destiny.fabricated.client.screen.FabricatorCraftScreen;
+import destiny.fabricated.init.NetworkInit;
+import destiny.fabricated.network.packets.ClientboundFabricatorRecalcRecipesPacket;
 import net.minecraft.client.Minecraft;
-import net.minecraftforge.event.TickEvent;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -23,5 +25,6 @@ public class CommonEvents
             if(minecraft.screen instanceof FabricatorBrowserCraftScreen screen)
                 screen.recipeStuff(screen.selectedTypeKey);
         }
+        else NetworkInit.sendTo((ServerPlayer) event.getEntity(), new ClientboundFabricatorRecalcRecipesPacket());
     }
 }

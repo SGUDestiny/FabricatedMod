@@ -3,9 +3,7 @@ package destiny.fabricated.menu;
 import destiny.fabricated.block_entities.FabricatorBlockEntity;
 import destiny.fabricated.init.BlockInit;
 import destiny.fabricated.init.MenuInit;
-import destiny.fabricated.init.NetworkInit;
 import destiny.fabricated.items.FabricatorRecipeModuleItem;
-import destiny.fabricated.network.packets.ServerboundFabricatorAnimPacket;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
@@ -18,7 +16,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import java.util.List;
-import java.util.Set;
 
 public class FabricatorBrowserCraftingMenu extends AbstractContainerMenu
 {
