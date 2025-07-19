@@ -3,7 +3,6 @@ package destiny.fabricated.init;
 import destiny.fabricated.FabricatedMod;
 import destiny.fabricated.items.FabricatorBlockItem;
 import destiny.fabricated.items.FabricatorBulkModuleItem;
-import destiny.fabricated.items.FabricatorModuleItem;
 import destiny.fabricated.items.FabricatorRecipeModuleItem;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.eventbus.api.IEventBus;

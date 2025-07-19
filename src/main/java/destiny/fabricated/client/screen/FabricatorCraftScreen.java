@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import destiny.fabricated.FabricatedMod;
+import destiny.fabricated.blocks.FabricatorBlock;
 import destiny.fabricated.init.NetworkInit;
 import destiny.fabricated.init.SoundInit;
 import destiny.fabricated.items.FabricatorRecipeModuleItem.RecipeData;
@@ -33,8 +34,6 @@ import net.minecraftforge.registries.ForgeRegistries;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static destiny.fabricated.client.screen.FabricatorBrowserCraftScreen.filterCraftableRecipes;
-
 public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCraftingMenu>
 {
     public static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(FabricatedMod.MODID, "textures/gui/fabricator_icon_bg.png");
@@ -61,12 +60,15 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
         this.scrollAmount = pMenu.item;
 
         this.hasSelected = selectedType != -1;
-        if(this.hasSelected)
+        if(this.hasSelected && !menu.blockEntity.getRecipeTypes().isEmpty())
         {
             this.selectedTypeKey = ForgeRegistries.RECIPE_TYPES.getValue(menu.blockEntity.getRecipeTypes().get(selectedType).key.location());
             selectedType += 1;
             scrollAmount -= 1;
         }
+
+        if(scrollAmount < 0)
+            scrollAmount = 0;
     }
 
     @Override
@@ -121,17 +123,17 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
     @Override
     protected void renderBg(GuiGraphics graphics, float pPartialTick, int pMouseX, int pMouseY)
     {
-        if(menu.blockEntity.fabricationStep == 2 && menu.blockEntity.fabricationCounter >= 47 && hasSelected)
-            recipeStuff(selectedTypeKey);
+        if(menu.blockEntity.getBlockState().getValue(FabricatorBlock.STATE).equals(FabricatorBlock.FabricatorState.FABRICATING))
+            return;
+
+        if(selectedType >= menu.recipeTypes.size())
+            selectedType = 0;
 
         if(menu.blockEntity.batchValue == 0)
         {
             recipeStuff(selectedTypeKey);
             menu.blockEntity.batchValue = 1;
         }
-
-        if(menu.blockEntity.state == 3)
-            return;
 
         PoseStack pose = graphics.pose();
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
@@ -167,32 +169,35 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
             pose.popPose();
         }
 
-        {
-            int x = baseX+122;
-            int y = baseY+(this.menu.recipeTypes.size()*22)+140;
-
-            pose.pushPose();
-            pose.translate(x, y, 0);
-            RenderBlitUtil.blit(RECIPE_BROWSER_BUTTON_TEXTURE, pose, 0, 0, 0, 0, 10, 10, 10, 10);
-            pose.popPose();
-        }
-
         if(hasSelected)
         {
-            if(recipes.isEmpty())
+            if(scrollAmount >= recipes.size())
+                scrollAmount = 0;
+
             {
-                recipeStuff(selectedTypeKey);
-                return;
+                int x = baseX+122;
+                int y = baseY+(this.menu.recipeTypes.size()*22)+140;
+
+                pose.pushPose();
+                pose.translate(x, y, 0);
+                RenderBlitUtil.blit(RECIPE_BROWSER_BUTTON_TEXTURE, pose, 0, 0, 0, 0, 10, 10, 10, 10);
+                pose.popPose();
             }
 
+            if(recipes.isEmpty())
+            {
+                if (menu.blockEntity.getLevel().getGameTime() % 20 == 0)
+                    recipeStuff(selectedTypeKey);
+                return;
+            }
             if(minecraft.level.getGameTime() % 2 == 0)
             {
                 if(menu.blockEntity.batchValue > menu.blockEntity.maxBatch())
-                    menu.blockEntity.batchValue = menu.blockEntity.maxBatch();
+                    menu.blockEntity.setBatch(menu.blockEntity.maxBatch());
 
                 int maxBatch = getMaxCraft(recipes.get(scrollAmount), minecraft.player.getInventory());
                 if(maxBatch < menu.blockEntity.batchValue)
-                    menu.blockEntity.batchValue = maxBatch;
+                    menu.blockEntity.setBatch(maxBatch);
             }
 
             if(selectedType != -1)
@@ -371,6 +376,9 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
             @Override
             public void onPress()
             {
+                if(menu.blockEntity.getBlockState().getValue(FabricatorBlock.STATE).equals(FabricatorBlock.FabricatorState.FABRICATING))
+                    return;
+
                 recipeStuff(ForgeRegistries.RECIPE_TYPES.getValue(data.getKey().location()));
                 selectedTypeKey = ForgeRegistries.RECIPE_TYPES.getValue(data.getKey().location());
                 selectedType = id;
@@ -402,8 +410,10 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
             @Override
             public void onPress()
             {
+                if(menu.blockEntity.getBlockState().getValue(FabricatorBlock.STATE).equals(FabricatorBlock.FabricatorState.FABRICATING))
+                    return;
+
                 if (!hasSelected) return;
-                if (menu.blockEntity.state == 3) return;
                 if (recipes.isEmpty()) return;
 
                 List<Ingredient> ingredients = recipes.get(scrollAmount).getIngredients();
@@ -411,7 +421,9 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
 
                 ItemStack stackToCraft = recipes.get(scrollAmount).getResultItem(Minecraft.getInstance().level.registryAccess());
                 if(hasRequiredItems(minecraft.player.getInventory(), fancyGetItems(inventory, ingredients), menu.blockEntity.batchValue))
-                    menu.blockEntity.fabricate(menu.level, menu.blockEntity.getBlockPos(), menu.blockEntity, stackToCraft, fancyGetItems(inventory, ingredients));
+                {
+                    menu.blockEntity.fabricate(menu.level, menu.blockEntity.getBlockPos(), stackToCraft, fancyGetItems(inventory, ingredients));
+                }
             }
 
             @Override
@@ -434,6 +446,8 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
             @Override
             public void onPress()
             {
+                if(menu.blockEntity.getBlockState().getValue(FabricatorBlock.STATE).equals(FabricatorBlock.FabricatorState.FABRICATING))
+                    return;
                 if(!hasSelected)
                     return;
                 if(recipes.isEmpty())
@@ -467,7 +481,14 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
             @Override
             public void onPress()
             {
-                ServerboundBrowserMenuPacket packet = new ServerboundBrowserMenuPacket(true, 0, 0, menu.blockEntity.getBlockPos());
+                if(!hasSelected)
+                    return;
+
+                if(menu.blockEntity.getBlockState().getValue(FabricatorBlock.STATE).equals(FabricatorBlock.FabricatorState.FABRICATING))
+                    return;
+
+                menu.switching = true;
+                ServerboundBrowserMenuPacket packet = new ServerboundBrowserMenuPacket(true, scrollAmount, selectedType-1, menu.blockEntity.getBlockPos());
                 NetworkInit.sendToServer(packet);
             }
 
@@ -475,6 +496,12 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
             protected void updateWidgetNarration(NarrationElementOutput pNarrationElementOutput)
             {
                 defaultButtonNarrationText(pNarrationElementOutput);
+            }
+
+            @Override
+            public void playDownSound(SoundManager pHandler)
+            {
+                pHandler.play(SimpleSoundInstance.forUI(SoundInit.FABRICATOR_BUTTON.get(), 1.0F));
             }
         };
     }
@@ -485,7 +512,8 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
             @Override
             public void onPress()
             {
-
+                if(menu.blockEntity.getBlockState().getValue(FabricatorBlock.STATE).equals(FabricatorBlock.FabricatorState.FABRICATING))
+                    return;
 
                 int usedIncrement = increment;
                 if(InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), InputConstants.KEY_LSHIFT))
@@ -524,15 +552,19 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
 
     public <T extends Recipe<?>> void recipeStuff(RecipeType<T> recipeType)
     {
-        RecipeManager recipeManager = Objects.requireNonNull(Minecraft.getInstance().level).getRecipeManager();
+        if(Minecraft.getInstance().level == null || Minecraft.getInstance().player == null)
+            return;
 
-        List<Recipe<Container>> recipes = recipeManager.getAllRecipesFor(((RecipeType<Recipe<Container>>) recipeType));
+        RecipeManager recipeManager = Minecraft.getInstance().level.getRecipeManager();
+        List<Recipe<Container>> recipeList = recipeManager.getAllRecipesFor(((RecipeType<Recipe<Container>>) recipeType));
 
-        this.recipes = recipes.stream().sorted(Comparator.comparing(recipe -> recipe.getResultItem(Minecraft.getInstance().level.registryAccess()).getDisplayName().getString())).toList();
-        this.recipes = this.recipes.stream().filter(entry -> !entry.getResultItem(Minecraft.getInstance().level.registryAccess()).isEmpty()).toList();
-        this.recipes = this.recipes.stream().filter(entry -> !(entry.isSpecial())).toList();
+        HashSet<Recipe<Container>> recipeSet = new HashSet<>(recipeList);
 
-        this.recipes = filterCraftableRecipes(this.recipes, minecraft.player.getInventory());
+        recipeSet.removeIf(recipe -> !hasRequiredItems(Minecraft.getInstance().player.getInventory(), getItems(recipe), 1)
+                || recipe.getResultItem(Minecraft.getInstance().level.registryAccess()).isEmpty() || recipe.isSpecial());
+
+        this.recipes = new ArrayList<>(recipeSet);
+        this.recipes.sort(Comparator.comparing(recipe -> recipe.getResultItem(Minecraft.getInstance().level.registryAccess()).getDisplayName().getString()));
     }
 
     public static int getMaxCraft(Recipe<?> recipe, Inventory playerInventory) {
@@ -597,7 +629,7 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
             int remaining = required.getCount();
 
             for (ItemStack invStack : simulatedInventory) {
-                if (!invStack.isEmpty() && ItemStack.isSameItemSameTags(invStack, required)) {
+                if (!invStack.isEmpty() && ItemStack.isSameItem(invStack, required)) {
                     int used = Math.min(remaining, invStack.getCount());
                     remaining -= used;
                     invStack.shrink(used);
@@ -620,7 +652,7 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
         return false;
     }
 
-    public List<ItemStack> getItems(Recipe<Container> recipe)
+    public static List<ItemStack> getItems(Recipe<Container> recipe)
     {
         List<ItemStack> items = new ArrayList<>();
         recipe.getIngredients().forEach(ingredient ->

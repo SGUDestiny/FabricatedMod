@@ -1,10 +1,8 @@
 package destiny.fabricated.items;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -39,13 +37,24 @@ public class FabricatorRecipeModuleItem extends FabricatorModuleItem
         return stack;
     }
 
-    public static ItemStack createDefault(FabricatorRecipeModuleItem item)
+    public static ItemStack createCrafting(FabricatorRecipeModuleItem item)
     {
         ItemStack stack = new ItemStack(item);
         List<RecipeData> recipeTypes = new ArrayList<>();
         recipeTypes.add(new RecipeData(Blocks.CRAFTING_TABLE.asItem(), Component.literal("Crafting"), ResourceKey.create(ForgeRegistries.RECIPE_TYPES.getRegistryKey(), ForgeRegistries.RECIPE_TYPES.getKey(RecipeType.CRAFTING))));
-        recipeTypes.add(new RecipeData(Blocks.FURNACE.asItem(), Component.literal("Smelting"), ResourceKey.create(ForgeRegistries.RECIPE_TYPES.getRegistryKey(), ForgeRegistries.RECIPE_TYPES.getKey(RecipeType.SMELTING))));
 
+        item.setRecipeTypes(stack, recipeTypes);
+
+        return stack;
+    }
+
+    public static ItemStack createSmelting(FabricatorRecipeModuleItem item)
+    {
+        ItemStack stack = new ItemStack(item);
+        List<RecipeData> recipeTypes = new ArrayList<>();
+        recipeTypes.add(new RecipeData(Blocks.FURNACE.asItem(), Component.literal("Smelting"), ResourceKey.create(ForgeRegistries.RECIPE_TYPES.getRegistryKey(), ForgeRegistries.RECIPE_TYPES.getKey(RecipeType.SMELTING))));
+        recipeTypes.add(new RecipeData(Blocks.BLAST_FURNACE.asItem(), Component.literal("Blasting"), ResourceKey.create(ForgeRegistries.RECIPE_TYPES.getRegistryKey(), ForgeRegistries.RECIPE_TYPES.getKey(RecipeType.BLASTING))));
+        recipeTypes.add(new RecipeData(Blocks.SMOKER.asItem(), Component.literal("Smoking"), ResourceKey.create(ForgeRegistries.RECIPE_TYPES.getRegistryKey(), ForgeRegistries.RECIPE_TYPES.getKey(RecipeType.SMOKING))));
 
         item.setRecipeTypes(stack, recipeTypes);
 

@@ -16,18 +16,34 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import java.util.List;
-import java.util.Set;
 
 public class FabricatorBrowserCraftingMenu extends AbstractContainerMenu
 {
     public FabricatorBlockEntity blockEntity;
     public Level level;
     public List<FabricatorRecipeModuleItem.RecipeData> recipeTypes;
+    public boolean switching;
+    public int type = -1;
     public int item = 0;
 
     public FabricatorBrowserCraftingMenu(int containerId, Inventory inventory, FriendlyByteBuf buffer)
     {
-        this(containerId, inventory, inventory.player.level().getBlockEntity(buffer.readBlockPos()));
+        this(containerId, inventory, inventory.player.level().getBlockEntity(buffer.readBlockPos()), buffer.readInt(), buffer.readInt());
+    }
+
+    public FabricatorBrowserCraftingMenu(int pContainerId, Inventory inventory, BlockEntity blockEntity, int type, int target)
+    {
+        super(MenuInit.FABRICATOR_BROWSER.get(), pContainerId);
+        this.blockEntity = ((FabricatorBlockEntity) blockEntity);
+        this.level = inventory.player.level();
+        this.recipeTypes = ((FabricatorBlockEntity) blockEntity).getRecipeTypes();
+        this.type = type;
+        this.item = target;
+
+        for (int i = 0; i < 36; ++i)
+        {
+            this.addSlot(new Slot(inventory, i, -10000, 0));
+        }
     }
 
     public FabricatorBrowserCraftingMenu(int pContainerId, Inventory inventory, BlockEntity blockEntity)
@@ -37,7 +53,7 @@ public class FabricatorBrowserCraftingMenu extends AbstractContainerMenu
         this.level = inventory.player.level();
         this.recipeTypes = ((FabricatorBlockEntity) blockEntity).getRecipeTypes();
 
-        for (int i = 0; i < 9; ++i)
+        for (int i = 0; i < 36; ++i)
         {
             this.addSlot(new Slot(inventory, i, -10000, 0));
         }
@@ -52,9 +68,10 @@ public class FabricatorBrowserCraftingMenu extends AbstractContainerMenu
     @Override
     public void removed(Player pPlayer)
     {
-        if(this.blockEntity.state != 3)
-            this.blockEntity.close(this.level, this.blockEntity.getBlockPos(), this.blockEntity);
-        this.blockEntity.isOpen = false;
+        if(switching)
+            return;
+
+        blockEntity.close(level, blockEntity.getBlockPos(), false);
     }
 
     @Override

@@ -1,23 +1,23 @@
 package destiny.fabricated.network;
 
-import destiny.fabricated.block_entities.FabricatorBlockEntity;
-import destiny.fabricated.init.SoundInit;
-import destiny.fabricated.network.packets.FabricatorUpdateStatePacket;
+import destiny.fabricated.client.screen.FabricatorBrowserCraftScreen;
+import destiny.fabricated.client.screen.FabricatorCraftScreen;
+import destiny.fabricated.network.packets.ClientboundFabricatorRecalcRecipesPacket;
 import net.minecraft.client.Minecraft;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.level.block.entity.BlockEntity;
 
 public class ClientPacketHandler
 {
-    public static void handleFabricatorUpdateState(FabricatorUpdateStatePacket packet)
+    public static void handleFabricatorMenuChange(ClientboundFabricatorRecalcRecipesPacket packet)
     {
-        BlockEntity blockEntity = Minecraft.getInstance().level.getBlockEntity(packet.pos);
-        if(blockEntity instanceof FabricatorBlockEntity fabricator)
+        Minecraft minecraft = Minecraft.getInstance();
+        if(minecraft.level != null && minecraft.player != null)
         {
-            fabricator.state = packet.state;
-            fabricator.isOpen = packet.open;
-            if(packet.state == 3)
-                fabricator.getLevel().playSound(Minecraft.getInstance().player, fabricator.getBlockPos(), SoundInit.FABRICATOR_FABRICATE.get(), SoundSource.BLOCKS);
+            minecraft.player.getInventory().add(packet.pickedUp);
+            if(minecraft.screen instanceof FabricatorCraftScreen screen)
+                screen.recipeStuff(screen.selectedTypeKey);
+            if(minecraft.screen instanceof FabricatorBrowserCraftScreen screen)
+                screen.recipeStuff(screen.selectedTypeKey);
+            minecraft.player.getInventory().removeItem(packet.pickedUp);
         }
     }
 }

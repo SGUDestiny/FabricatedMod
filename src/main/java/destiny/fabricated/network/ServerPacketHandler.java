@@ -1,14 +1,18 @@
 package destiny.fabricated.network;
 
 import destiny.fabricated.block_entities.FabricatorBlockEntity;
+import destiny.fabricated.blocks.FabricatorBlock;
 import destiny.fabricated.init.NetworkInit;
+import destiny.fabricated.menu.FabricatorBrowserCraftingMenu;
+import destiny.fabricated.menu.FabricatorCraftingMenu;
 import destiny.fabricated.network.packets.*;
-import net.minecraft.server.TickTask;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.SimpleMenuProvider;
-import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.network.NetworkHooks;
 
 import java.util.ArrayList;
@@ -16,35 +20,32 @@ import java.util.List;
 
 public class ServerPacketHandler
 {
-    public static void handleFabricatorCraftItem(FabricatorCraftItemPacket packet, ServerPlayer player)
+    public static void handleFabricatorCraftPrep(ServerboundFabricatorCraftItemPacket packet, ServerPlayer player)
     {
         if(player.level().getBlockEntity(packet.pos) instanceof FabricatorBlockEntity fabricator)
         {
-            ItemStack result = packet.result.copyWithCount(packet.result.getCount() * fabricator.batchValue);
-
-            if (ServerPacketHandler.consumeItemsFromInventory(player, packet.ingredients, fabricator.batchValue))
-            {
-                ItemEntity itemEntity = new ItemEntity(player.level(), fabricator.getBlockPos().getCenter().x, fabricator.getBlockPos().getCenter().y, fabricator.getBlockPos().getCenter().z, result);
-                player.level().addFreshEntity(itemEntity);
-            }
+            if(ServerPacketHandler.consumeItemsFromInventory(player, packet.ingredients, fabricator.batchValue))
+                fabricator.craftStack = packet.craftStack;
         }
     }
 
-    public static void handleFabricatorStatePacket(ServerboundFabricatorStatePacket packet, ServerPlayer player)
+    public static void handleFabricatorAnimPacket(ServerboundFabricatorAnimPacket packet, ServerPlayer player)
     {
         if(player.level().getBlockEntity(packet.pos) instanceof FabricatorBlockEntity fabricator)
         {
-            fabricator.state = packet.state;
-            fabricator.isOpen = packet.isOpen;
-            fabricator.setChanged();
-        }
-    }
+            Level level = player.level();
+            BlockState state = fabricator.getBlockState();
+            BlockPos pos = fabricator.getBlockPos();
 
-    public static void handleFabricatorStepPacket(ServerboundFabricationStepPacket packet, ServerPlayer player)
-    {
-        if(player.level().getBlockEntity(packet.pos) instanceof FabricatorBlockEntity fabricator)
-        {
-            fabricator.fabricationStep = packet.step;
+            if(packet.anim.equals("open"))
+                level.setBlock(pos, state.setValue(FabricatorBlock.STATE, FabricatorBlock.FabricatorState.OPEN), 2);
+            if(packet.anim.equals("close") && !packet.closeAfterCraft)
+                level.setBlock(pos, state.setValue(FabricatorBlock.STATE, FabricatorBlock.FabricatorState.CLOSED), 2);
+            if(packet.anim.equals("fabricate"))
+                level.setBlock(pos, state.setValue(FabricatorBlock.STATE, FabricatorBlock.FabricatorState.FABRICATING), 2);
+
+            if(!packet.closeAfterCraft)
+                fabricator.triggerAnim("main", packet.anim);
         }
     }
 
@@ -60,6 +61,11 @@ public class ServerPacketHandler
     {
         if(player.level().getBlockEntity(packet.pos) instanceof FabricatorBlockEntity fabricator)
         {
+            if(player.containerMenu instanceof FabricatorCraftingMenu menu)
+                menu.switching = true;
+            if(player.containerMenu instanceof FabricatorBrowserCraftingMenu menu)
+                menu.switching = true;
+
             packet.getMenu(fabricator).ifPresent(menu -> NetworkHooks.openScreen(player,
                     new SimpleMenuProvider(menu, fabricator.getBlockState().getBlock().getName()),
                     buf -> {
@@ -68,9 +74,10 @@ public class ServerPacketHandler
                 buf.writeInt(packet.target);
                     }));
 
-            fabricator.state = 4;
-            fabricator.isOpen = true;
-            NetworkInit.sendToTracking(fabricator, new FabricatorUpdateStatePacket(fabricator.getBlockPos(), 4, true));
+            NetworkInit.sendToTracking(player, new ClientboundFabricatorRecalcRecipesPacket(ItemStack.EMPTY));
+
+            fabricator.triggerAnim("main", "open_idle");
+            player.level().setBlock(packet.pos, fabricator.getBlockState().setValue(FabricatorBlock.STATE, FabricatorBlock.FabricatorState.OPEN), 2);
         }
     }
 

@@ -8,14 +8,12 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.world.Container;
-import net.minecraft.world.Containers;
+import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
@@ -30,6 +28,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -41,6 +40,7 @@ import java.util.List;
 public class FabricatorBlock extends BaseEntityBlock implements SimpleWaterloggedBlock, EntityBlock {
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
+    public static final EnumProperty<FabricatorState> STATE = EnumProperty.create("state", FabricatorState.class);
 
     public static final VoxelShape SHAPE_NORTH = MathUtil.buildShape(
             Block.box(1, -1, 13, 15, 17, 16)
@@ -58,7 +58,7 @@ public class FabricatorBlock extends BaseEntityBlock implements SimpleWaterlogge
     public FabricatorBlock(Properties pProperties)
     {
         super(pProperties);
-        this.registerDefaultState(this.defaultBlockState().setValue(FACING, Direction.NORTH).setValue(WATERLOGGED, false));
+        this.registerDefaultState(this.defaultBlockState().setValue(FACING, Direction.NORTH).setValue(WATERLOGGED, false).setValue(STATE, FabricatorState.CLOSED));
     }
 
     @Override
@@ -79,7 +79,7 @@ public class FabricatorBlock extends BaseEntityBlock implements SimpleWaterlogge
     public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
         if (pLevel.getBlockEntity(pPos) instanceof FabricatorBlockEntity fabricator)
         {
-            if(fabricator.isOpen || fabricator.fabricationStep != 0)
+            if(pState.getValue(FabricatorBlock.STATE).equals(FabricatorState.FABRICATING))
                 return InteractionResult.PASS;
 
             if (pPlayer.isCrouching())
@@ -102,7 +102,7 @@ public class FabricatorBlock extends BaseEntityBlock implements SimpleWaterlogge
 
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> blockStateBuilder)
     {
-        blockStateBuilder.add(WATERLOGGED, FACING);
+        blockStateBuilder.add(WATERLOGGED, FACING, STATE);
         super.createBlockStateDefinition(blockStateBuilder);
     }
 
@@ -129,7 +129,7 @@ public class FabricatorBlock extends BaseEntityBlock implements SimpleWaterlogge
     {
         LevelAccessor accessor = pContext.getLevel();
         BlockPos pos = pContext.getClickedPos();
-        return this.defaultBlockState().setValue(WATERLOGGED, accessor.getFluidState(pos).getType() == Fluids.WATER).setValue(FACING, pContext.getHorizontalDirection().getOpposite());
+        return this.defaultBlockState().setValue(WATERLOGGED, accessor.getFluidState(pos).getType() == Fluids.WATER).setValue(FACING, pContext.getHorizontalDirection().getOpposite()).setValue(STATE, FabricatorState.CLOSED);
     }
 
     @Override
@@ -155,6 +155,15 @@ public class FabricatorBlock extends BaseEntityBlock implements SimpleWaterlogge
     }
 
     @Override
+    public float getDestroyProgress(BlockState pState, Player pPlayer, BlockGetter pLevel, BlockPos pPos)
+    {
+        if(pState.getValue(STATE).equals(FabricatorState.FABRICATING))
+            return 0.0F;
+
+        return super.getDestroyProgress(pState, pPlayer, pLevel, pPos);
+    }
+
+    @Override
     public void appendHoverText(ItemStack pStack, @org.jetbrains.annotations.Nullable BlockGetter pLevel, List<Component> pTooltip, TooltipFlag pFlag)
     {
         MutableComponent efficiency = Component.translatable("block.fabricated.fabricator.description").withStyle(ChatFormatting.GRAY);
@@ -172,5 +181,24 @@ public class FabricatorBlock extends BaseEntityBlock implements SimpleWaterlogge
     public @org.jetbrains.annotations.Nullable BlockEntity newBlockEntity(BlockPos pos, BlockState state)
     {
         return BlockEntityInit.FABRICATOR.get().create(pos, state);
+    }
+
+    public enum FabricatorState implements StringRepresentable
+    {
+        OPEN("open"),
+        CLOSED("closed"),
+        FABRICATING("fabricating");
+
+        public String name;
+        FabricatorState(String name)
+        {
+            this.name = name;
+        }
+
+        @Override
+        public String getSerializedName()
+        {
+            return name;
+        }
     }
 }

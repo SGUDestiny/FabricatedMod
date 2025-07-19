@@ -6,7 +6,6 @@ import destiny.fabricated.menu.FabricatorCraftingMenu;
 import destiny.fabricated.network.ServerPacketHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.MenuProvider;
 import net.minecraft.world.inventory.MenuConstructor;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -55,7 +54,7 @@ public class ServerboundBrowserMenuPacket
     public Optional<MenuConstructor> getMenu(FabricatorBlockEntity fabricator)
     {
         if(this.openBrowser)
-            return Optional.of((window, inventory, player) -> new FabricatorBrowserCraftingMenu(window, inventory, fabricator));
+            return Optional.of((window, inventory, player) -> new FabricatorBrowserCraftingMenu(window, inventory, fabricator, this.type, this.target));
         else
             return Optional.of((window, inventory, player) -> new FabricatorCraftingMenu(window, inventory, fabricator, this.type, this.target));
     }
