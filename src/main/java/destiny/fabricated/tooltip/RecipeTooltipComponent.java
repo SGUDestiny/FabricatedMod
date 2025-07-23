@@ -16,7 +16,6 @@ public class RecipeTooltipComponent implements ClientTooltipComponent, TooltipCo
 {
     public Recipe<?> recipe;
     public List<ItemStack> items;
-    public float time;
 
     public RecipeTooltipComponent(Recipe<?> recipe)
     {
