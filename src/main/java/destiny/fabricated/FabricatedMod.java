@@ -26,6 +26,7 @@ public class FabricatedMod
         BlockEntityInit.register(modEventBus);
         MenuInit.register(modEventBus);
         SoundInit.register(modEventBus);
+        FabricationInit.register(modEventBus);
 
         modEventBus.addListener(this::commonSetup);
         MinecraftForge.EVENT_BUS.register(this);

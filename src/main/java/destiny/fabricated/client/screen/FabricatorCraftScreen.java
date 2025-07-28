@@ -5,12 +5,17 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import destiny.fabricated.FabricatedMod;
 import destiny.fabricated.blocks.FabricatorBlock;
+import destiny.fabricated.init.FabricationInit;
 import destiny.fabricated.init.NetworkInit;
 import destiny.fabricated.init.SoundInit;
 import destiny.fabricated.items.FabricatorRecipeModuleItem.RecipeData;
 import destiny.fabricated.menu.FabricatorCraftingMenu;
 import destiny.fabricated.network.packets.ServerboundBrowserMenuPacket;
+import destiny.fabricated.recipes.Fabrication;
+import destiny.fabricated.recipes.FabricationType;
+import destiny.fabricated.recipes.containers.FabricatorContainer;
 import destiny.fabricated.tooltip.RecipeTooltipComponent;
+import destiny.fabricated.util.MathUtil;
 import destiny.fabricated.util.RenderBlitUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -43,7 +48,7 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
 
     public static final ResourceLocation RECIPE_BROWSER_BUTTON_TEXTURE = ResourceLocation.fromNamespaceAndPath(FabricatedMod.MODID, "textures/gui/fabricator_recipe_browser.png");
 
-    public List<Recipe<Container>> recipes;
+    public List<Fabrication> recipes;
     public RecipeType<?> selectedTypeKey;
     public boolean hasSelected;
     public int scrollAmount;
@@ -63,7 +68,6 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
         if(this.hasSelected && !menu.blockEntity.getRecipeTypes().isEmpty())
         {
             this.selectedTypeKey = ForgeRegistries.RECIPE_TYPES.getValue(menu.blockEntity.getRecipeTypes().get(selectedType).key.location());
-            selectedType += 1;
             scrollAmount -= 1;
         }
 
@@ -81,11 +85,11 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
         int i = 0;
         for(RecipeData data : this.menu.recipeTypes)
         {
-            i++;
             int x = baseX+118;
             int y = baseY+(i*22)+120;
 
             this.addWidget(this.createButton(i, x, y, 18, 18, data));
+            i++;
         }
 
         {
@@ -105,7 +109,7 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
         }
         {
             int x = baseX+122;
-            int y = baseY+(this.menu.recipeTypes.size()*22)+140;
+            int y = baseY+(this.menu.recipeTypes.size()*22)+118;
             this.addWidget(this.createRecipeBrowserButton(x, y, 10, 10));
         }
 
@@ -146,9 +150,9 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
         int o = 0;
         for(RecipeData data : this.menu.recipeTypes)
         {
-            o++;
             int x = baseX+118;
             int y = baseY+(o*22)+120;
+            o++;
 
             pose.pushPose();
 
@@ -176,7 +180,7 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
 
             {
                 int x = baseX+122;
-                int y = baseY+(this.menu.recipeTypes.size()*22)+140;
+                int y = baseY+(this.menu.recipeTypes.size()*22)+118;
 
                 pose.pushPose();
                 pose.translate(x, y, 0);
@@ -195,7 +199,7 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
                 if(menu.blockEntity.batchValue > menu.blockEntity.maxBatch())
                     menu.blockEntity.setBatch(menu.blockEntity.maxBatch());
 
-                int maxBatch = getMaxCraft(recipes.get(scrollAmount), minecraft.player.getInventory());
+                int maxBatch = MathUtil.matchStacks(MathUtil.mergeItemStacks(minecraft.player.getInventory().items), recipes.get(scrollAmount).inputs);
                 if(maxBatch < menu.blockEntity.batchValue)
                     menu.blockEntity.setBatch(maxBatch);
             }
@@ -308,19 +312,19 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
 
                 try
                 {
-                    Recipe<Container> recipe = recipes.get(recipeI+amountToScroll);
+                    Fabrication recipe = recipes.get(recipeI+amountToScroll);
                     if(recipe != null)
                     {
                         int x = baseX+140;
                         int y = baseY+(iO*22)+(selectedType*22)+32;
 
                         pose.pushPose();
-                        ItemStack stack = recipe.getResultItem(Minecraft.getInstance().level.registryAccess());
+                        ItemStack stack = recipe.getDisplayItem();
 
                         pose.pushPose();
                         if(pMouseX > x && pMouseX < x+18)
                             if(pMouseY > y && pMouseY < y+18)
-                                graphics.renderTooltip(Minecraft.getInstance().font, List.of(stack.getHoverName()), Optional.of(new RecipeTooltipComponent(recipe)) ,pMouseX, pMouseY);
+                                graphics.renderTooltip(Minecraft.getInstance().font, FabricatorCraftScreen.getTooltipFromItem(minecraft, stack), Optional.of(new RecipeTooltipComponent(recipe)) ,pMouseX, pMouseY);
 
                         pose.translate(x, y, 0);
 
@@ -336,6 +340,7 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
                         pose.popPose();
 
                         graphics.renderItem(stack, 1, 1);
+                        graphics.renderItemDecorations(font, stack, 1, 1);
                         pose.popPose();
                     }
                 }
@@ -416,13 +421,12 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
                 if (!hasSelected) return;
                 if (recipes.isEmpty()) return;
 
-                List<Ingredient> ingredients = recipes.get(scrollAmount).getIngredients();
-                Inventory inventory = minecraft.player.getInventory();
+                Fabrication fabrication = recipes.get(scrollAmount);
 
-                ItemStack stackToCraft = recipes.get(scrollAmount).getResultItem(Minecraft.getInstance().level.registryAccess());
-                if(hasRequiredItems(minecraft.player.getInventory(), fancyGetItems(inventory, ingredients), menu.blockEntity.batchValue))
+                if(hasRequiredItems(minecraft.player.getInventory(), fabrication.getInputs(), menu.blockEntity.batchValue))
                 {
-                    menu.blockEntity.fabricate(menu.level, menu.blockEntity.getBlockPos(), stackToCraft, fancyGetItems(inventory, ingredients));
+                    menu.blockEntity.fabricate(menu.level, menu.blockEntity.getBlockPos(),
+                            fabrication.getDisplayItem(), fabrication.getOutputs(), fabrication.getInputs(), menu.blockEntity.batchValue);
                 }
             }
 
@@ -488,7 +492,7 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
                     return;
 
                 menu.switching = true;
-                ServerboundBrowserMenuPacket packet = new ServerboundBrowserMenuPacket(true, scrollAmount, selectedType-1, menu.blockEntity.getBlockPos());
+                ServerboundBrowserMenuPacket packet = new ServerboundBrowserMenuPacket(true, scrollAmount, selectedType, menu.blockEntity.getBlockPos());
                 NetworkInit.sendToServer(packet);
             }
 
@@ -524,7 +528,7 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
                     menu.blockEntity.incrementBatch(usedIncrement);
                     return;
                 }
-                int maxBatch = getMaxCraft(recipes.get(scrollAmount), minecraft.player.getInventory());
+                int maxBatch = MathUtil.matchStacks(MathUtil.mergeItemStacks(minecraft.player.getInventory().items), recipes.get(scrollAmount).inputs);
                 if(maxBatch < menu.blockEntity.batchValue && maxBatch < menu.blockEntity.batchValue+usedIncrement)
                     return;
                 if(maxBatch >= menu.blockEntity.batchValue && maxBatch < menu.blockEntity.batchValue+usedIncrement)
@@ -558,83 +562,51 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
         RecipeManager recipeManager = Minecraft.getInstance().level.getRecipeManager();
         List<Recipe<Container>> recipeList = recipeManager.getAllRecipesFor(((RecipeType<Recipe<Container>>) recipeType));
 
-        HashSet<Recipe<Container>> recipeSet = new HashSet<>(recipeList);
+        List<Fabrication> fabrications = new ArrayList<>();
 
-        recipeSet.removeIf(recipe -> !hasRequiredItems(Minecraft.getInstance().player.getInventory(), getItems(recipe), 1)
-                || recipe.getResultItem(Minecraft.getInstance().level.registryAccess()).isEmpty() || recipe.isSpecial());
+        for(Recipe<?> recipe : recipeList)
+        {
+            if(!FabricationInit.FABRICATION_MAP.containsKey(recipe.getClass()))
+                continue;
+
+            FabricationType<Recipe<?>> type = (FabricationType<Recipe<?>>) FabricationInit.FABRICATION_MAP.get(recipe.getClass());
+            FabricatorContainer container = new FabricatorContainer(Minecraft.getInstance().player.getInventory().items);
+            fabrications.addAll(type.assembleFabrications(container, recipe, Minecraft.getInstance().level.registryAccess()));
+        }
+
+        HashSet<Fabrication> recipeSet = new HashSet<>(fabrications);
+
+        recipeSet.removeIf(recipe ->
+                !(MathUtil.matchStacks(MathUtil.mergeItemStacks(minecraft.player.getInventory().items), recipe.inputs) > 0)
+                || recipe.getOutputs().isEmpty());
 
         this.recipes = new ArrayList<>(recipeSet);
-        this.recipes.sort(Comparator.comparing(recipe -> recipe.getResultItem(Minecraft.getInstance().level.registryAccess()).getDisplayName().getString()));
-    }
-
-    public static int getMaxCraft(Recipe<?> recipe, Inventory playerInventory) {
-        List<Ingredient> ingredients = recipe.getIngredients();
-        if (ingredients.isEmpty())
-            return 0;
-
-        List<ItemStack> available = new ArrayList<>();
-        for (int i = 0; i < playerInventory.getContainerSize(); i++) {
-            ItemStack stack = playerInventory.getItem(i);
-            if (!stack.isEmpty()) {
-                available.add(stack.copy());
-            }
-        }
-
-        int craftCount = 0;
-
-        while (true) {
-            List<ItemStack> tempInventory = available.stream().map(ItemStack::copy).collect(Collectors.toList());
-            boolean canCraft = true;
-
-            for (Ingredient ingredient : ingredients) {
-                boolean matched = false;
-                if(ingredient.isEmpty())
-                    continue;
-
-                for (ItemStack stack : tempInventory) {
-                    if (ingredient.test(stack) && stack.getCount() > 0) {
-                        stack.shrink(1);
-                        matched = true;
-                        break;
-                    }
-                }
-
-                if (!matched) {
-                    canCraft = false;
-                    break;
-                }
-            }
-
-            if (canCraft) {
-                craftCount++;
-                available = tempInventory;
-            } else {
-                break;
-            }
-        }
-
-        return craftCount;
+        this.recipes.sort(Comparator.comparing(recipe -> recipe.getDisplayItem().getDisplayName().getString()));
     }
 
     public static boolean hasRequiredItems(Inventory inventory, List<ItemStack> requiredItems, int batchValue) {
-        List<ItemStack> simulatedInventory = inventory.items.stream()
-                .map(ItemStack::copy)
-                .toList();
+        if(requiredItems.isEmpty())
+            return false;
 
-        for (ItemStack required : requiredItems) {
-            if (required.isEmpty()) continue;
+        List<ItemStack> stacks = MathUtil.mergeItemStacks(inventory.items);
+
+        for (ItemStack stack : requiredItems) {
+            if (stack.isEmpty()) continue;
+
+            ItemStack required = stack.copy();
 
             required.setCount(required.getCount()*batchValue);
 
             int remaining = required.getCount();
 
-            for (ItemStack invStack : simulatedInventory) {
+            for (ItemStack invStack : stacks) {
                 if (!invStack.isEmpty() && ItemStack.isSameItem(invStack, required)) {
                     int used = Math.min(remaining, invStack.getCount());
                     remaining -= used;
                     invStack.shrink(used);
 
-                    if (remaining <= 0) break;
+                    if (remaining <= 0)
+                        break;
                 }
             }
 
@@ -645,91 +617,4 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
 
         return true;
     }
-
-    @Override
-    public boolean isPauseScreen()
-    {
-        return false;
-    }
-
-    public static List<ItemStack> getItems(Recipe<Container> recipe)
-    {
-        List<ItemStack> items = new ArrayList<>();
-        recipe.getIngredients().forEach(ingredient ->
-        {
-            ItemStack stack = ingredient.getItems().length == 0 ? ItemStack.EMPTY :  ingredient.getItems()[0];
-            items.add(stack);
-        });
-
-        HashMap<Item, Integer> map = new HashMap<>();
-        for(ItemStack stack : items)
-        {
-            if(stack.isEmpty())
-                continue;
-
-            boolean merged = false;
-            for(Item key : map.keySet())
-                if(stack.is(key))
-                {
-                    map.put(key, map.get(key) + stack.getCount());
-                    merged = true;
-                    break;
-                }
-            if(!merged)
-                map.put(stack.getItem(), stack.getCount());
-        }
-
-        List<ItemStack> result = new ArrayList<>();
-        map.forEach((item, count) -> result.add(new ItemStack(item, count)));
-
-        return result;
-    }
-
-    public static List<ItemStack> fancyGetItems(Inventory inventory, List<Ingredient> ingredients) {
-        List<ItemStack> result = new ArrayList<>();
-
-        for (Ingredient ingredient : ingredients) {
-            if (ingredient.isEmpty()) continue;
-
-            boolean matched = false;
-
-            for (int i = 0; i < inventory.getContainerSize(); i++) {
-                ItemStack invStack = inventory.getItem(i);
-
-                if (!invStack.isEmpty() && ingredient.test(invStack)) {
-                    ItemStack copy = invStack.copy();
-                    copy.setCount(1);
-                    result.add(copy);
-                    matched = true;
-                    break;
-                }
-            }
-
-            if (!matched)
-                continue;
-        }
-
-        Map<ItemStack, Integer> combined = new HashMap<>();
-
-        outer:
-        for (ItemStack stack : result) {
-            for (ItemStack key : combined.keySet()) {
-                if (ItemStack.isSameItemSameTags(key, stack)) {
-                    combined.put(key, combined.get(key) + 1);
-                    continue outer;
-                }
-            }
-            combined.put(stack.copyWithCount(1), 1);
-        }
-
-        List<ItemStack> combinedResult = new ArrayList<>();
-        for (Map.Entry<ItemStack, Integer> entry : combined.entrySet()) {
-            ItemStack stack = entry.getKey().copy();
-            stack.setCount(entry.getValue());
-            combinedResult.add(stack);
-        }
-
-        return combinedResult;
-    }
-
 }

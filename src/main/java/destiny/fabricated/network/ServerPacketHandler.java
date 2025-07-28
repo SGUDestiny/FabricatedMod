@@ -24,8 +24,12 @@ public class ServerPacketHandler
     {
         if(player.level().getBlockEntity(packet.pos) instanceof FabricatorBlockEntity fabricator)
         {
-            if(ServerPacketHandler.consumeItemsFromInventory(player, packet.ingredients, fabricator.batchValue))
+            fabricator.batchValue = packet.batch;
+            if(ServerPacketHandler.consumeItemsFromInventory(player, packet.ingredients, packet.batch))
+            {
                 fabricator.craftStack = packet.craftStack;
+                fabricator.outputs = packet.outputs;
+            }
         }
     }
 
@@ -89,12 +93,17 @@ public class ServerPacketHandler
         }
     }
 
-    public static boolean consumeItemsFromInventory(ServerPlayer player, List<ItemStack> requiredItems, int batch) {
+    public static boolean consumeItemsFromInventory(ServerPlayer player, List<ItemStack> requiredItems, int batchValue) {
         List<Boolean> allTaken = new ArrayList<>();
-        for (ItemStack required : requiredItems) {
-            if (required.isEmpty()) continue;
+        if(requiredItems.isEmpty())
+            return false;
 
-            int remaining = required.getCount()*batch;
+        for (ItemStack stack : requiredItems) {
+            if (stack.isEmpty()) continue;
+
+            ItemStack required = stack.copyWithCount(stack.getCount() * batchValue);
+
+            int remaining = required.getCount();
 
             for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
                 ItemStack invStack = player.getInventory().getItem(i);

@@ -3,11 +3,15 @@ package destiny.fabricated.client.screen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import destiny.fabricated.FabricatedMod;
+import destiny.fabricated.init.FabricationInit;
 import destiny.fabricated.init.NetworkInit;
 import destiny.fabricated.init.SoundInit;
 import destiny.fabricated.items.FabricatorRecipeModuleItem;
 import destiny.fabricated.menu.FabricatorBrowserCraftingMenu;
 import destiny.fabricated.network.packets.ServerboundBrowserMenuPacket;
+import destiny.fabricated.recipes.Fabrication;
+import destiny.fabricated.recipes.FabricationType;
+import destiny.fabricated.recipes.containers.FabricatorContainer;
 import destiny.fabricated.tooltip.RecipeTooltipComponent;
 import destiny.fabricated.util.RenderBlitUtil;
 import net.minecraft.client.Minecraft;
@@ -43,7 +47,7 @@ public class FabricatorBrowserCraftScreen extends AbstractContainerScreen<Fabric
     public static final ResourceLocation ARROW_LEFT_TEXTURE = ResourceLocation.fromNamespaceAndPath(FabricatedMod.MODID, "textures/gui/fabricator_arrow_left.png");
     public static final ResourceLocation ARROW_RIGHT_TEXTURE = ResourceLocation.fromNamespaceAndPath(FabricatedMod.MODID, "textures/gui/fabricator_arrow_right.png");
 
-    public List<Recipe<Container>> recipes;
+    public List<Fabrication> recipes;
     public RecipeType<?> selectedTypeKey;
     public boolean hasSelected;
     public int page;
@@ -64,7 +68,6 @@ public class FabricatorBrowserCraftScreen extends AbstractContainerScreen<Fabric
         if(this.hasSelected)
         {
             this.selectedTypeKey = ForgeRegistries.RECIPE_TYPES.getValue(menu.blockEntity.getRecipeTypes().get(selectedType).key.location());
-            selectedType += 1;
         }
         this.page = 0;
     }
@@ -80,11 +83,11 @@ public class FabricatorBrowserCraftScreen extends AbstractContainerScreen<Fabric
         int i = 0;
         for(FabricatorRecipeModuleItem.RecipeData data : this.menu.recipeTypes)
         {
-            i++;
             int x = baseX+118;
             int y = baseY+(i*22)+120;
 
             this.addWidget(this.createButton(i, x, y, 18, 18, data));
+            i++;
         }
 
         {
@@ -107,11 +110,11 @@ public class FabricatorBrowserCraftScreen extends AbstractContainerScreen<Fabric
         {
             for (int x = 0; x < 6; x++)
             {
-                o++;
-                int xO = baseX + x * 22 + 140;
+                int xO = baseX + x * 22 + 118;
                 int yO = baseY + (y * 22) + (selectedType * 22) + 120;
 
                 this.addWidget(this.createRecipeButton(xO, yO, 18, 18, o));
+                o++;
             }
         }
 
@@ -131,9 +134,9 @@ public class FabricatorBrowserCraftScreen extends AbstractContainerScreen<Fabric
         int o = 0;
         for(FabricatorRecipeModuleItem.RecipeData data : this.menu.recipeTypes)
         {
-            o++;
             int x = baseX+118;
             int y = baseY+(o*22)+120;
+            o++;
 
             pose.pushPose();
 
@@ -166,7 +169,7 @@ public class FabricatorBrowserCraftScreen extends AbstractContainerScreen<Fabric
 
             {
                 int x = baseX+122;
-                int y = baseY+(this.menu.recipeTypes.size()*22)+140;
+                int y = baseY+(this.menu.recipeTypes.size()*22)+118;
 
                 pose.pushPose();
                 pose.translate(x, y, 0);
@@ -189,13 +192,13 @@ public class FabricatorBrowserCraftScreen extends AbstractContainerScreen<Fabric
                 {
                     try
                     {
-                        Recipe<Container> recipe = recipes.get(recipeI);
+                        Fabrication recipe = recipes.get(recipeI);
                         recipeI++;
                         int xO = baseX + x * 22 + 140;
                         int yO = baseY + (y * 22) + (selectedType * 22) + 120;
 
                         pose.pushPose();
-                        ItemStack stack = recipe.getResultItem(Minecraft.getInstance().level.registryAccess());
+                        ItemStack stack = recipe.getDisplayItem();
 
                         pose.pushPose();
                         if (pMouseX > xO && pMouseX < xO + 18) if (pMouseY > yO && pMouseY < yO + 18)
@@ -326,8 +329,11 @@ public class FabricatorBrowserCraftScreen extends AbstractContainerScreen<Fabric
             @Override
             public void onPress()
             {
+                if(id > recipes.size())
+                    return;
+
                 menu.switching = true;
-                NetworkInit.sendToServer(new ServerboundBrowserMenuPacket(false, number+(page*24), selectedType-1, menu.blockEntity.getBlockPos()));
+                NetworkInit.sendToServer(new ServerboundBrowserMenuPacket(false, number+(page*24), selectedType, menu.blockEntity.getBlockPos()));
             }
 
             @Override
@@ -352,14 +358,25 @@ public class FabricatorBrowserCraftScreen extends AbstractContainerScreen<Fabric
         RecipeManager recipeManager = Minecraft.getInstance().level.getRecipeManager();
         List<Recipe<Container>> recipeList = recipeManager.getAllRecipesFor(((RecipeType<Recipe<Container>>) recipeType));
 
-        HashSet<Recipe<Container>> recipeSet = new HashSet<>(recipeList);
+        this.recipes.clear();
 
-        recipeSet.removeIf(recipe -> !hasRequiredItems(Minecraft.getInstance().player.getInventory(), getItems(recipe), 1)
-                || recipe.getResultItem(Minecraft.getInstance().level.registryAccess()).isEmpty() || recipe.isSpecial());
+        for(Recipe<?> recipe : recipeList)
+        {
+            if(!FabricationInit.FABRICATION_MAP.containsKey(recipe.getClass()))
+                continue;
+
+            FabricationType<Recipe<?>> type = (FabricationType<Recipe<?>>) FabricationInit.FABRICATION_MAP.get(recipe.getClass());
+            FabricatorContainer container = new FabricatorContainer(Minecraft.getInstance().player.getInventory().items);
+            this.recipes.addAll(type.assembleFabrications(container, recipe, Minecraft.getInstance().level.registryAccess()));
+        }
+
+        HashSet<Fabrication> recipeSet = new HashSet<>(this.recipes);
+
+        recipeSet.removeIf(recipe -> !hasRequiredItems(Minecraft.getInstance().player.getInventory(), recipe.getInputs(), 1)
+                || recipe.getOutputs().isEmpty());
 
         this.recipes = new ArrayList<>(recipeSet);
-        this.recipes.sort(Comparator.comparing(recipe ->
-                recipe.getResultItem(Minecraft.getInstance().level.registryAccess()).getDisplayName().getString()));
+        this.recipes.sort(Comparator.comparing(recipe -> recipe.getDisplayItem().getDisplayName().getString()));
     }
 
     public int getPageCount()

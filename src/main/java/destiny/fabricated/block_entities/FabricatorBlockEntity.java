@@ -20,16 +20,12 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.Container;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.RecipeManager;
-import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -48,9 +44,6 @@ import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.*;
-
-import static destiny.fabricated.client.screen.FabricatorCraftScreen.getItems;
-import static destiny.fabricated.client.screen.FabricatorCraftScreen.hasRequiredItems;
 
 public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
 {
@@ -72,6 +65,7 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
     }
 
     public ItemStackHandler upgrades = createHandler(6);
+    public List<ItemStack> outputs = new ArrayList<>();
     public ItemStack craftStack = ItemStack.EMPTY;
     public int batchValue = 1;
 
@@ -119,13 +113,17 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
 
         if(this.fabricatingTicker > 60)
         {
-            ItemStack result = this.craftStack.copyWithCount(this.craftStack.getCount() * this.batchValue);
+            for(ItemStack stack : this.outputs)
+            {
+                ItemStack result = stack.copyWithCount(stack.getCount() * this.batchValue);
 
-            ItemEntity itemEntity = new ItemEntity(level, this.getBlockPos().getCenter().x, this.getBlockPos().getCenter().y, this.getBlockPos().getCenter().z, result);
-            level.addFreshEntity(itemEntity);
+                ItemEntity itemEntity = new ItemEntity(level, this.getBlockPos().getCenter().x, this.getBlockPos().getCenter().y, this.getBlockPos().getCenter().z, result);
+                level.addFreshEntity(itemEntity);
+            }
 
             this.fabricatingTicker = 0;
             this.craftStack = ItemStack.EMPTY;
+            this.outputs = new ArrayList<>();
             if(closeAfterCraft)
                 close(level, getBlockPos(), false);
             else
@@ -256,12 +254,12 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
         }
     }
 
-    public void fabricate(Level level, BlockPos pos, ItemStack stack, List<ItemStack> ingredients)
+    public void fabricate(Level level, BlockPos pos, ItemStack stack, List<ItemStack> outputs, List<ItemStack> ingredients, int batchValue)
     {
         if(level.isClientSide())
         {
             NetworkInit.sendToServer(new ServerboundFabricatorAnimPacket(pos, "fabricate", false));
-            NetworkInit.sendToServer(new ServerboundFabricatorCraftItemPacket(pos, stack, ingredients));
+            NetworkInit.sendToServer(new ServerboundFabricatorCraftItemPacket(pos, stack, outputs, ingredients, batchValue));
             NetworkInit.sendToServer(new ServerboundSoundPacket(pos, SoundInit.FABRICATOR_FABRICATE.get()));
             return;
         }

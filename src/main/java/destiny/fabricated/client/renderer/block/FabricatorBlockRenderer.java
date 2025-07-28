@@ -7,6 +7,7 @@ import destiny.fabricated.block_entities.FabricatorBlockEntity;
 import destiny.fabricated.client.model.block.FabricatorModel;
 import destiny.fabricated.client.renderer.FabricatorRenderTypes;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.entity.ItemRenderer;
@@ -16,6 +17,8 @@ import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.client.model.data.ModelData;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
@@ -89,8 +92,10 @@ public class FabricatorBlockRenderer extends GeoBlockRenderer<FabricatorBlockEnt
             poseStack.translate(-0.5F, -0.5F, -0.5F);
             float transparency = (animTime-15f)/(timeDown-15f);
             BakedModel bakedModel = itemRenderer.getModel(fabricator.craftStack, fabricator.getLevel(), null, 0);
+            BakedModel realModel = bakedModel.getOverrides().resolve(bakedModel, fabricator.craftStack, (ClientLevel) fabricator.getLevel(), null, 0);
+
             RenderType rt = FabricatorRenderTypes.fabricatingItem(TextureAtlas.LOCATION_BLOCKS);
-            renderModel(poseStack.last(), bufferSource.getBuffer(rt), transparency, null, bakedModel, red, green, blue, 240, OverlayTexture.NO_OVERLAY, ModelData.EMPTY, rt);
+            renderModel(poseStack.last(), bufferSource.getBuffer(rt), transparency, null, realModel, red, green, blue, 240, OverlayTexture.NO_OVERLAY, ModelData.EMPTY, rt);
         }
         poseStack.popPose();
     }
@@ -99,7 +104,7 @@ public class FabricatorBlockRenderer extends GeoBlockRenderer<FabricatorBlockEnt
         RandomSource randomsource = RandomSource.create();
         long i = 42L;
 
-        for (Direction direction : Direction.values()) {
+        for(Direction direction : Direction.values()) {
             randomsource.setSeed(42L);
             renderQuadList(p_111068_, p_111069_, p_111072_, p_111073_, p_111074_, alpha, p_111071_.getQuads(p_111070_, direction, randomsource, modelData, renderType), p_111075_, p_111076_);
         }
