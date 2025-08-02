@@ -1,5 +1,6 @@
 package destiny.fabricated.events;
 
+import com.simibubi.create.Create;
 import destiny.fabricated.FabricatedMod;
 import destiny.fabricated.client.renderer.block.FabricatorBlockRenderer;
 import destiny.fabricated.client.screen.FabricatorBrowserCraftScreen;
@@ -18,6 +19,7 @@ import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 
@@ -55,6 +57,12 @@ public class ClientEvents {
         {
             event.accept(FabricatorRecipeModuleItem.createCrafting(ItemInit.FABRICATOR_RECIPE_MODULE.get()));
             event.accept(FabricatorRecipeModuleItem.createSmelting(ItemInit.FABRICATOR_RECIPE_MODULE.get()));
+            if(ModList.get().isLoaded(Create.ID))
+            {
+                event.accept(FabricatorRecipeModuleItem.createMechanicalCrafting(ItemInit.FABRICATOR_RECIPE_MODULE.get()));
+                event.accept(FabricatorRecipeModuleItem.createCrushing(ItemInit.FABRICATOR_RECIPE_MODULE.get()));
+                event.accept(FabricatorRecipeModuleItem.createProcessing(ItemInit.FABRICATOR_RECIPE_MODULE.get()));
+            }
 
             event.accept(FabricatorBulkModuleItem.create(ItemInit.FABRICATOR_BULK_MODULE_1.get(), 16));
             event.accept(FabricatorBulkModuleItem.create(ItemInit.FABRICATOR_BULK_MODULE_2.get(), 32));

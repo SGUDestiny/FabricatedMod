@@ -82,6 +82,11 @@ repositories {
         name "KosmX's maven"
         url 'https://maven.kosmx.dev/'
     }
+    maven { url = "https://maven.ithundxr.dev/mirror" } // Registrate
+    maven {
+        name = "Jared's maven"
+        url = "https://maven.blamejared.com/"
+    }
     maven { url 'https://api.modrinth.com/maven' }
     maven { url "https://maven.shedaniel.me/" }
     maven { url "https://cursemaven.com" }
@@ -91,6 +96,14 @@ dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
     implementation fg.deobf("curse.maven:geckolib-388172:6333474")
+
+    compileOnly fg.deobf("mezz.jei:jei-1.20.1-common-api:${jei_version}")
+    compileOnly fg.deobf("mezz.jei:jei-1.20.1-forge-api:${jei_version}")
+    runtimeOnly fg.deobf("mezz.jei:jei-1.20.1-forge:${jei_version}")
+
+    //Compatabilities
+    compileOnly fg.deobf("com.tterrag.registrate:Registrate:MC1.20-1.3.3")
+    implementation fg.deobf("curse.maven:create-328085:6641603")
 
     //annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 

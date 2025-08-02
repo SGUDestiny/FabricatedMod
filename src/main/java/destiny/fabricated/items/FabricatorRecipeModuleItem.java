@@ -1,5 +1,9 @@
 package destiny.fabricated.items;
 
+import com.simibubi.create.AllBlocks;
+import com.simibubi.create.AllItems;
+import com.simibubi.create.AllRecipeTypes;
+import com.simibubi.create.Create;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -33,30 +37,6 @@ public class FabricatorRecipeModuleItem extends FabricatorModuleItem
         ItemStack stack = new ItemStack(item);
         List<RecipeData> recipeDatas = new ArrayList<>(recipes);
         item.setRecipeTypes(stack, recipeDatas);
-
-        return stack;
-    }
-
-    public static ItemStack createCrafting(FabricatorRecipeModuleItem item)
-    {
-        ItemStack stack = new ItemStack(item);
-        List<RecipeData> recipeTypes = new ArrayList<>();
-        recipeTypes.add(new RecipeData(Blocks.CRAFTING_TABLE.asItem(), Component.literal("Crafting"), ResourceKey.create(ForgeRegistries.RECIPE_TYPES.getRegistryKey(), ForgeRegistries.RECIPE_TYPES.getKey(RecipeType.CRAFTING))));
-
-        item.setRecipeTypes(stack, recipeTypes);
-
-        return stack;
-    }
-
-    public static ItemStack createSmelting(FabricatorRecipeModuleItem item)
-    {
-        ItemStack stack = new ItemStack(item);
-        List<RecipeData> recipeTypes = new ArrayList<>();
-        recipeTypes.add(new RecipeData(Blocks.FURNACE.asItem(), Component.literal("Smelting"), ResourceKey.create(ForgeRegistries.RECIPE_TYPES.getRegistryKey(), ForgeRegistries.RECIPE_TYPES.getKey(RecipeType.SMELTING))));
-        recipeTypes.add(new RecipeData(Blocks.BLAST_FURNACE.asItem(), Component.literal("Blasting"), ResourceKey.create(ForgeRegistries.RECIPE_TYPES.getRegistryKey(), ForgeRegistries.RECIPE_TYPES.getKey(RecipeType.BLASTING))));
-        recipeTypes.add(new RecipeData(Blocks.SMOKER.asItem(), Component.literal("Smoking"), ResourceKey.create(ForgeRegistries.RECIPE_TYPES.getRegistryKey(), ForgeRegistries.RECIPE_TYPES.getKey(RecipeType.SMOKING))));
-
-        item.setRecipeTypes(stack, recipeTypes);
 
         return stack;
     }
@@ -151,5 +131,65 @@ public class FabricatorRecipeModuleItem extends FabricatorModuleItem
             this.nameComponent = Component.Serializer.fromJson(tag.getString(NAME));
             this.key = ResourceKey.create(ForgeRegistries.RECIPE_TYPES.getRegistryKey(), ResourceLocation.tryParse(tag.getString(RECIPE_KEY)));
         }
+    }
+
+    public static ItemStack createCrafting(FabricatorRecipeModuleItem item)
+    {
+        ItemStack stack = new ItemStack(item);
+        List<RecipeData> recipeTypes = new ArrayList<>();
+        recipeTypes.add(new RecipeData(Blocks.CRAFTING_TABLE.asItem(), Component.literal("Crafting"), ResourceKey.create(ForgeRegistries.RECIPE_TYPES.getRegistryKey(), ForgeRegistries.RECIPE_TYPES.getKey(RecipeType.CRAFTING))));
+
+        item.setRecipeTypes(stack, recipeTypes);
+
+        return stack;
+    }
+
+    public static ItemStack createSmelting(FabricatorRecipeModuleItem item)
+    {
+        ItemStack stack = new ItemStack(item);
+        List<RecipeData> recipeTypes = new ArrayList<>();
+        recipeTypes.add(new RecipeData(Blocks.FURNACE.asItem(), Component.literal("Smelting"), ResourceKey.create(ForgeRegistries.RECIPE_TYPES.getRegistryKey(), ForgeRegistries.RECIPE_TYPES.getKey(RecipeType.SMELTING))));
+        recipeTypes.add(new RecipeData(Blocks.BLAST_FURNACE.asItem(), Component.literal("Blasting"), ResourceKey.create(ForgeRegistries.RECIPE_TYPES.getRegistryKey(), ForgeRegistries.RECIPE_TYPES.getKey(RecipeType.BLASTING))));
+        recipeTypes.add(new RecipeData(Blocks.SMOKER.asItem(), Component.literal("Smoking"), ResourceKey.create(ForgeRegistries.RECIPE_TYPES.getRegistryKey(), ForgeRegistries.RECIPE_TYPES.getKey(RecipeType.SMOKING))));
+
+        item.setRecipeTypes(stack, recipeTypes);
+
+        return stack;
+    }
+
+    public static ItemStack createMechanicalCrafting(FabricatorRecipeModuleItem item)
+    {
+        ItemStack stack = new ItemStack(item);
+        List<RecipeData> recipeTypes = new ArrayList<>();
+        recipeTypes.add(new RecipeData(AllBlocks.MECHANICAL_CRAFTER.asItem(), Component.literal("Mechanical Crafting"), ResourceKey.create(ForgeRegistries.RECIPE_TYPES.getRegistryKey(), ForgeRegistries.RECIPE_TYPES.getKey(AllRecipeTypes.MECHANICAL_CRAFTING.getType()))));
+
+        item.setRecipeTypes(stack, recipeTypes);
+
+        return stack;
+    }
+
+    public static ItemStack createCrushing(FabricatorRecipeModuleItem item)
+    {
+        ItemStack stack = new ItemStack(item);
+        List<RecipeData> recipeTypes = new ArrayList<>();
+        recipeTypes.add(new RecipeData(AllBlocks.CRUSHING_WHEEL.asItem(), Component.literal("Crushing"), ResourceKey.create(ForgeRegistries.RECIPE_TYPES.getRegistryKey(), ForgeRegistries.RECIPE_TYPES.getKey(AllRecipeTypes.CRUSHING.getType()))));
+        recipeTypes.add(new RecipeData(AllBlocks.MILLSTONE.asItem(), Component.literal("Milling"), ResourceKey.create(ForgeRegistries.RECIPE_TYPES.getRegistryKey(), ForgeRegistries.RECIPE_TYPES.getKey(AllRecipeTypes.MILLING.getType()))));
+
+        item.setRecipeTypes(stack, recipeTypes);
+
+        return stack;
+    }
+
+    public static ItemStack createProcessing(FabricatorRecipeModuleItem item)
+    {
+        ItemStack stack = new ItemStack(item);
+        List<RecipeData> recipeTypes = new ArrayList<>();
+        recipeTypes.add(new RecipeData(AllBlocks.MECHANICAL_PRESS.asItem(), Component.literal("Pressing"), ResourceKey.create(ForgeRegistries.RECIPE_TYPES.getRegistryKey(), ForgeRegistries.RECIPE_TYPES.getKey(AllRecipeTypes.PRESSING.getType()))));
+        recipeTypes.add(new RecipeData(AllBlocks.MECHANICAL_SAW.asItem(), Component.literal("Cutting"), ResourceKey.create(ForgeRegistries.RECIPE_TYPES.getRegistryKey(), ForgeRegistries.RECIPE_TYPES.getKey(AllRecipeTypes.CUTTING.getType()))));
+        recipeTypes.add(new RecipeData(AllItems.SAND_PAPER.asItem(), Component.literal("Polishing"), ResourceKey.create(ForgeRegistries.RECIPE_TYPES.getRegistryKey(), ForgeRegistries.RECIPE_TYPES.getKey(AllRecipeTypes.SANDPAPER_POLISHING.getType()))));
+
+        item.setRecipeTypes(stack, recipeTypes);
+
+        return stack;
     }
 }

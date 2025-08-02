@@ -19,7 +19,9 @@ import java.util.function.Supplier;
 
 public class FabricationInit
 {
-    public static final DeferredRegister<FabricationType<?>> FABRICATIONS = DeferredRegister.create(new ResourceLocation(FabricatedMod.MODID, "fabrication_type"), FabricatedMod.MODID);
+    public static final ResourceLocation REGISTRY_NAME = new ResourceLocation(FabricatedMod.MODID, "fabrication_type");
+
+    public static final DeferredRegister<FabricationType<?>> FABRICATIONS = DeferredRegister.create(REGISTRY_NAME, FabricatedMod.MODID);
     public static final Supplier<IForgeRegistry<FabricationType<?>>> FABRICATION = FABRICATIONS.makeRegistry(RegistryBuilder::new);
 
     public static final HashMap<Class<? extends Recipe<?>>, FabricationType<?>> FABRICATION_MAP = new HashMap<>();
