@@ -26,9 +26,12 @@ public class MillingFabricationType extends FabricationType<MillingRecipe>
             return fabrications;
         if(!recipe.getFluidResults().isEmpty())
             return fabrications;
+        List<ItemStack> inputs = MathUtil.ingredientsToStacks(container.getItems(), recipe.getIngredients());
+        if(inputs.isEmpty())
+            return fabrications;
 
         Consumer<Fabrication> modifier = fabrication -> fabrication.outputs = recipe.rollResults();
-        fabrications.add(new Fabrication(recipe.rollResults(), MathUtil.ingredientsToStacks(container.getItems(), recipe.getIngredients()), modifier));
+        fabrications.add(new Fabrication(recipe.rollResults(), inputs, modifier));
 
         return fabrications;
     }

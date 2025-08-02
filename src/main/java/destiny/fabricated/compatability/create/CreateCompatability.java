@@ -1,14 +1,13 @@
 package destiny.fabricated.compatability.create;
 
 import com.simibubi.create.Create;
+import com.simibubi.create.content.equipment.sandPaper.SandPaperPolishingRecipe;
 import com.simibubi.create.content.kinetics.crafter.MechanicalCraftingRecipe;
 import com.simibubi.create.content.kinetics.crusher.CrushingRecipe;
 import com.simibubi.create.content.kinetics.millstone.MillingRecipe;
 import com.simibubi.create.content.kinetics.press.PressingRecipe;
-import destiny.fabricated.compatability.create.recipes.CrushingFabricationType;
-import destiny.fabricated.compatability.create.recipes.MechanicalCraftingFabricationType;
-import destiny.fabricated.compatability.create.recipes.MillingFabricationType;
-import destiny.fabricated.compatability.create.recipes.PressingFabricationType;
+import com.simibubi.create.content.kinetics.saw.CuttingRecipe;
+import destiny.fabricated.compatability.create.recipes.*;
 import destiny.fabricated.init.FabricationInit;
 import destiny.fabricated.recipes.FabricationType;
 import destiny.fabricated.recipes.ShulkerBoxColoringFabricationType;
@@ -35,6 +34,10 @@ public class CreateCompatability
             registerFabrication(MillingRecipe.class, MillingFabricationType::new, "milling");
     public static final RegistryObject<FabricationType<PressingRecipe>> PRESSING =
             registerFabrication(PressingRecipe.class, PressingFabricationType::new, "pressing");
+    public static final RegistryObject<FabricationType<CuttingRecipe>> CUTTING =
+            registerFabrication(CuttingRecipe.class, CuttingFabricationType::new, "cutting");
+    public static final RegistryObject<FabricationType<SandPaperPolishingRecipe>> POLISHING =
+            registerFabrication(SandPaperPolishingRecipe.class, PolishingFabricationType::new, "polishing");
 
     public static <R extends Recipe<?>> RegistryObject<FabricationType<R>> registerFabrication(Class<R> clazz, Supplier<FabricationType<R>> fabricationType, String id)
     {

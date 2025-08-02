@@ -7,6 +7,7 @@ import destiny.fabricated.recipes.FabricationType;
 import destiny.fabricated.recipes.containers.FabricatorContainer;
 import destiny.fabricated.util.MathUtil;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,10 +21,12 @@ public class MechanicalCraftingFabricationType extends FabricationType<Mechanica
                                                   RegistryAccess registryAccess)
     {
         List<Fabrication> fabrications = new ArrayList<>();
-        //TODO - MAKE THIS CHECK IF IT CAN CRAFT INSTEAD.
 
-        fabrications.add(new Fabrication(List.of(recipe.getResultItem(registryAccess)), MathUtil.ingredientsToStacks(container.getItems(), recipe.getIngredients())));
+        List<ItemStack> inputs = MathUtil.ingredientsToStacks(container.getItems(), recipe.getIngredients());
+        if(inputs.isEmpty())
+            return fabrications;
 
+        fabrications.add(new Fabrication(List.of(recipe.getResultItem(registryAccess)), inputs));
         return fabrications;
     }
 }

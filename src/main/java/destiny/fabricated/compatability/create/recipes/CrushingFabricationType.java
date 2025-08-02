@@ -7,6 +7,7 @@ import destiny.fabricated.recipes.FabricationType;
 import destiny.fabricated.recipes.containers.FabricatorContainer;
 import destiny.fabricated.util.MathUtil;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,9 +25,12 @@ public class CrushingFabricationType extends FabricationType<CrushingRecipe>
             return fabrications;
         if(!recipe.getFluidResults().isEmpty())
             return fabrications;
+        List<ItemStack> inputs = MathUtil.ingredientsToStacks(container.getItems(), recipe.getIngredients());
+        if(inputs.isEmpty())
+            return fabrications;
 
         Consumer<Fabrication> modifier = fabrication -> fabrication.outputs = recipe.rollResults();
-        fabrications.add(new Fabrication(recipe.rollResults(), MathUtil.ingredientsToStacks(container.getItems(), recipe.getIngredients()), modifier));
+        fabrications.add(new Fabrication(recipe.rollResults(), inputs, modifier));
 
         return fabrications;
     }
