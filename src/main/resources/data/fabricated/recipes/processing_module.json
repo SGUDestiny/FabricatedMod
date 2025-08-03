@@ -1,0 +1,52 @@
+{
+  "type": "forge:conditional",
+  "recipes":
+  [
+    {
+      "conditions":
+      [
+        {
+          "type": "forge:mod_loaded",
+          "modid": "create"
+        }
+      ],
+      "recipe":
+      {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "group": "misc",
+        "key": {
+          "C": {
+            "item": "create:mechanical_saw"
+          },
+          "P": {
+            "item": "create:mechanical_press"
+          },
+          "B": {
+            "item": "create:brass_ingot"
+          },
+          "I": {
+            "tag": "forge:ingots/iron"
+          },
+          "G": {
+            "tag": "forge:ingots/gold"
+          },
+          "S": {
+            "item": "create:sand_paper"
+          }
+        },
+        "pattern": [
+          "IBI",
+          "PSC",
+          "IGI"
+        ],
+        "result": {
+          "item": "fabricated:fabricator_recipe_module",
+          "nbt": "{recipe_types: [{name: '{\"text\":\"Pressing\"}', item: \"create:mechanical_press\", recipe_key: \"create:pressing\"}, {name: '{\"text\":\"Cutting\"}', item: \"create:mechanical_saw\", recipe_key: \"create:cutting\"}, {name: '{\"text\":\"Polishing\"}', item: \"create:sand_paper\", recipe_key: \"create:sandpaper_polishing\"}]}",
+          "count": 1
+        },
+        "show_notification": true
+      }
+    }
+  ]
+}

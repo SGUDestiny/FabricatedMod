@@ -51,22 +51,10 @@ public class ClientEvents {
     public static void creativeTabs(BuildCreativeModeTabContentsEvent event)
     {
         if(event.getTabKey().equals(CreativeModeTabs.FUNCTIONAL_BLOCKS))
-            event.accept(ItemInit.FABRICATOR.get());
 
         if(event.getTabKey().equals(CreativeModeTabs.TOOLS_AND_UTILITIES))
         {
-            event.accept(FabricatorRecipeModuleItem.createCrafting(ItemInit.FABRICATOR_RECIPE_MODULE.get()));
-            event.accept(FabricatorRecipeModuleItem.createSmelting(ItemInit.FABRICATOR_RECIPE_MODULE.get()));
-            if(ModList.get().isLoaded(Create.ID))
-            {
-                event.accept(FabricatorRecipeModuleItem.createMechanicalCrafting(ItemInit.FABRICATOR_RECIPE_MODULE.get()));
-                event.accept(FabricatorRecipeModuleItem.createCrushing(ItemInit.FABRICATOR_RECIPE_MODULE.get()));
-                event.accept(FabricatorRecipeModuleItem.createProcessing(ItemInit.FABRICATOR_RECIPE_MODULE.get()));
-            }
 
-            event.accept(FabricatorBulkModuleItem.create(ItemInit.FABRICATOR_BULK_MODULE_1.get(), 16));
-            event.accept(FabricatorBulkModuleItem.create(ItemInit.FABRICATOR_BULK_MODULE_2.get(), 32));
-            event.accept(FabricatorBulkModuleItem.create(ItemInit.FABRICATOR_BULK_MODULE_3.get(), 64));
         }
     }
 }

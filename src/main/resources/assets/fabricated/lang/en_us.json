@@ -1,4 +1,6 @@
 {
+  "tabs.fabricated.main": "Fabricated",
+
   "block.fabricated.fabricator": "Fabricator",
   "block.fabricated.fabricator.description": "Hold crouch button to open Upgrades Menu",
 
@@ -8,6 +10,7 @@
   "item.fabricated.fabricator_bulk_module_3": "Fabricator Batch Module 3",
 
   "message.fabricated.fabricator_no_modules": "Unable to open: No recipe modules detected",
+  "message.fabricated.fabricator_full": "Unable to insert module: No free module slots detected",
 
   "advancement.fabricated.root.title": "Fabricated",
   "advancement.fabricated.root.description": "Convenient and efficient crafting brought to you by Alterra Corporation",

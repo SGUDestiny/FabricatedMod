@@ -1,0 +1,49 @@
+{
+  "type": "forge:conditional",
+  "recipes":
+  [
+    {
+      "conditions":
+      [
+        {
+          "type": "forge:mod_loaded",
+          "modid": "create"
+        }
+      ],
+      "recipe":
+      {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "group": "misc",
+        "key": {
+          "C": {
+            "item": "create:crushing_wheel"
+          },
+          "N": {
+            "tag": "forge:ingots/netherite"
+          },
+          "I": {
+            "tag": "forge:ingots/iron"
+          },
+          "G": {
+            "tag": "forge:ingots/gold"
+          },
+          "M": {
+            "item": "create:millstone"
+          }
+        },
+        "pattern": [
+          "INI",
+          "CMC",
+          "IGI"
+        ],
+        "result": {
+          "item": "fabricated:fabricator_recipe_module",
+          "nbt": "{recipe_types: [{name: '{\"text\":\"Crushing\"}', item: \"create:crushing_wheels\", recipe_key: \"create:crushing\"}, {name: '{\"text\":\"Milling\"}', item: \"create:millstone\", recipe_key: \"create:milling\"}]}",
+          "count": 1
+        },
+        "show_notification": true
+      }
+    }
+  ]
+}
