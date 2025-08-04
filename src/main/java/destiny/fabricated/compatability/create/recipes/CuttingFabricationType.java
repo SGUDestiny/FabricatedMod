@@ -30,7 +30,7 @@ public class CuttingFabricationType extends FabricationType<CuttingRecipe>
             return fabrications;
 
         Consumer<Fabrication> modifier = fabrication -> fabrication.outputs = recipe.rollResults();
-        fabrications.add(new Fabrication(recipe.rollResults(), inputs, modifier));
+        fabrications.add(new Fabrication(recipe.rollResults(), inputs, modifier, recipe.getId()));
 
         return fabrications;
     }

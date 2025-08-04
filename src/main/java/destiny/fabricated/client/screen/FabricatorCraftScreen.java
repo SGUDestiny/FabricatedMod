@@ -426,7 +426,7 @@ public class FabricatorCraftScreen extends AbstractContainerScreen<FabricatorCra
                 if(hasRequiredItems(minecraft.player.getInventory(), fabrication.getInputs(), menu.blockEntity.batchValue))
                 {
                     menu.blockEntity.fabricate(menu.level, menu.blockEntity.getBlockPos(),
-                            fabrication.getDisplayItem(), fabrication.getOutputs(), fabrication.getInputs(), menu.blockEntity.batchValue);
+                            fabrication.getDisplayItem(), fabrication.getOutputs(), fabrication.getInputs(), fabrication.recipeId, menu.blockEntity.batchValue);
                 }
             }
 

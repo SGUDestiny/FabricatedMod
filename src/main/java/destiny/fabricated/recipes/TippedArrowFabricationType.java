@@ -32,7 +32,7 @@ public class TippedArrowFabricationType extends FabricationType<TippedArrowRecip
                 PotionUtils.setCustomEffects(arrow, PotionUtils.getCustomEffects(potion));
 
                 if(fabrications.stream().noneMatch(fabrication -> fabrication.getOutputs().stream().anyMatch(stack -> PotionUtils.getPotion(potion).equals(PotionUtils.getPotion(stack)))))
-                    fabrications.add(new Fabrication(List.of(arrow), List.of(potion.copyWithCount(1), new ItemStack(Items.ARROW, 8))));
+                    fabrications.add(new Fabrication(List.of(arrow), List.of(potion.copyWithCount(1), new ItemStack(Items.ARROW, 8)), recipe.getId()));
             }
 
         return fabrications;

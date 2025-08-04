@@ -3,6 +3,7 @@ package destiny.fabricated.network.packets;
 import destiny.fabricated.network.ServerPacketHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -16,9 +17,11 @@ public class ServerboundFabricatorCraftItemPacket
     public List<ItemStack> outputs;
     public List<ItemStack> ingredients;
     public BlockPos pos;
+    public ResourceLocation recipeID;
     public int batch;
-    public ServerboundFabricatorCraftItemPacket(BlockPos pos, ItemStack craftStack, List<ItemStack> outputs, List<ItemStack> ingredients, int batch)
+    public ServerboundFabricatorCraftItemPacket(ResourceLocation id, BlockPos pos, ItemStack craftStack, List<ItemStack> outputs, List<ItemStack> ingredients, int batch)
     {
+        this.recipeID = id;
         this.pos = pos;
         this.outputs = outputs;
         this.craftStack = craftStack;
@@ -32,6 +35,7 @@ public class ServerboundFabricatorCraftItemPacket
         buffer.writeCollection(packet.outputs, FriendlyByteBuf::writeItem);
         buffer.writeCollection(packet.ingredients, FriendlyByteBuf::writeItem);
         buffer.writeBlockPos(packet.pos);
+        buffer.writeResourceLocation(packet.recipeID);
         buffer.writeInt(packet.batch);
     }
 
@@ -41,9 +45,10 @@ public class ServerboundFabricatorCraftItemPacket
         List<ItemStack> outputs = buffer.readCollection(ArrayList::new, FriendlyByteBuf::readItem);
         List<ItemStack> ingrediensts = buffer.readCollection(ArrayList::new, FriendlyByteBuf::readItem);
         BlockPos pos = buffer.readBlockPos();
+        ResourceLocation id = buffer.readResourceLocation();
         int batch = buffer.readInt();
 
-        return new ServerboundFabricatorCraftItemPacket(pos, craftStack, outputs, ingrediensts, batch);
+        return new ServerboundFabricatorCraftItemPacket(id, pos, craftStack, outputs, ingrediensts, batch);
     }
 
     public static void handle(ServerboundFabricatorCraftItemPacket packet, Supplier<NetworkEvent.Context> context)

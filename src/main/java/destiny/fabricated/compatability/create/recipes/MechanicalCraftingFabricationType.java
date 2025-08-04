@@ -26,7 +26,7 @@ public class MechanicalCraftingFabricationType extends FabricationType<Mechanica
         if(inputs.isEmpty())
             return fabrications;
 
-        fabrications.add(new Fabrication(List.of(recipe.getResultItem(registryAccess)), inputs));
+        fabrications.add(new Fabrication(List.of(recipe.getResultItem(registryAccess)), inputs, recipe.getId()));
         return fabrications;
     }
 }

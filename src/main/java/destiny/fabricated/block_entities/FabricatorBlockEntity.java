@@ -12,12 +12,14 @@ import destiny.fabricated.items.FabricatorRecipeModuleItem.RecipeData;
 import destiny.fabricated.menu.FabricatorCraftingMenu;
 import destiny.fabricated.menu.FabricatorUpgradesMenu;
 import destiny.fabricated.network.packets.*;
+import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.MenuProvider;
@@ -254,12 +256,12 @@ public class FabricatorBlockEntity extends BlockEntity implements GeoBlockEntity
         }
     }
 
-    public void fabricate(Level level, BlockPos pos, ItemStack stack, List<ItemStack> outputs, List<ItemStack> ingredients, int batchValue)
+    public void fabricate(Level level, BlockPos pos, ItemStack stack, List<ItemStack> outputs, List<ItemStack> ingredients, ResourceLocation recipeId, int batchValue)
     {
         if(level.isClientSide())
         {
             NetworkInit.sendToServer(new ServerboundFabricatorAnimPacket(pos, "fabricate", false));
-            NetworkInit.sendToServer(new ServerboundFabricatorCraftItemPacket(pos, stack, outputs, ingredients, batchValue));
+            NetworkInit.sendToServer(new ServerboundFabricatorCraftItemPacket(recipeId, pos, stack, outputs, ingredients, batchValue));
             NetworkInit.sendToServer(new ServerboundSoundPacket(pos, SoundInit.FABRICATOR_FABRICATE.get()));
             return;
         }

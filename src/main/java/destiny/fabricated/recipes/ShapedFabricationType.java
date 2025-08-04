@@ -21,6 +21,6 @@ public class ShapedFabricationType extends FabricationType<ShapedRecipe>
         if(inputs.isEmpty())
             return new ArrayList<>();
 
-        return List.of(new Fabrication(List.of(recipe.getResultItem(registryAccess)), inputs));
+        return List.of(new Fabrication(List.of(recipe.getResultItem(registryAccess)), inputs, recipe.getId()));
     }
 }

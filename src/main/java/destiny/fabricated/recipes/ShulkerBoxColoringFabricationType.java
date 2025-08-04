@@ -45,7 +45,7 @@ public class ShulkerBoxColoringFabricationType extends FabricationType<ShulkerBo
                     coloredBox.setTag(shulkerBox.getTag().copy());
 
                 if(fabrications.stream().noneMatch(fabrication -> fabrication.getOutputs().contains(coloredBox)))
-                    fabrications.add(new Fabrication(List.of(coloredBox), List.of(dyeStack.copyWithCount(1), shulkerBox)));
+                    fabrications.add(new Fabrication(List.of(coloredBox), List.of(dyeStack.copyWithCount(1), shulkerBox), recipe.getId()));
             }
 
         return fabrications;

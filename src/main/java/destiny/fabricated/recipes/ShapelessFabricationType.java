@@ -21,6 +21,6 @@ public class ShapelessFabricationType extends FabricationType<ShapelessRecipe>
         if(inputs.isEmpty())
             return new ArrayList<>();
 
-        return List.of(new Fabrication(List.of(recipe.getResultItem(registryAccess)), inputs));
+        return List.of(new Fabrication(List.of(recipe.getResultItem(registryAccess)), inputs, recipe.getId()));
     }
 }

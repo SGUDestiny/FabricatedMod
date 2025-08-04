@@ -6,6 +6,7 @@ import destiny.fabricated.init.NetworkInit;
 import destiny.fabricated.menu.FabricatorBrowserCraftingMenu;
 import destiny.fabricated.menu.FabricatorCraftingMenu;
 import destiny.fabricated.network.packets.*;
+import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -25,6 +26,7 @@ public class ServerPacketHandler
         if(player.level().getBlockEntity(packet.pos) instanceof FabricatorBlockEntity fabricator)
         {
             fabricator.batchValue = packet.batch;
+            CriteriaTriggers.RECIPE_CRAFTED.trigger(player, packet.recipeID, packet.ingredients);
             if(ServerPacketHandler.consumeItemsFromInventory(player, packet.ingredients, packet.batch))
             {
                 fabricator.craftStack = packet.craftStack;

@@ -38,7 +38,7 @@ public class FireworkRocketFabricationType extends FabricationType<FireworkRocke
                 CompoundTag tag = firework.getOrCreateTagElement("Fireworks");
 
                 tag.putByte("Flight", (byte) i);
-                fabrications.add(new Fabrication(List.of(firework), List.of(new ItemStack(Items.PAPER), new ItemStack(Items.GUNPOWDER, i))));
+                fabrications.add(new Fabrication(List.of(firework), List.of(new ItemStack(Items.PAPER), new ItemStack(Items.GUNPOWDER, i)), recipe.getId()));
 
                 for (ItemStack star : stars)
                 {
@@ -52,7 +52,7 @@ public class FireworkRocketFabricationType extends FabricationType<FireworkRocke
                         ListTag listTag = new ListTag();
                         listTag.add(star.getTagElement("Explosion"));
                         tagB.put("Explosions", listTag);
-                        fabrications.add(new Fabrication(List.of(fireworkB), List.of(new ItemStack(Items.PAPER), new ItemStack(Items.GUNPOWDER, i), star.copyWithCount(1))));
+                        fabrications.add(new Fabrication(List.of(fireworkB), List.of(new ItemStack(Items.PAPER), new ItemStack(Items.GUNPOWDER, i), star.copyWithCount(1)), recipe.getId()));
                     }
                 }
             }

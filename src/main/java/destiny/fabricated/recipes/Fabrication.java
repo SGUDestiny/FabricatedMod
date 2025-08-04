@@ -1,6 +1,7 @@
 package destiny.fabricated.recipes;
 
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
@@ -16,16 +17,19 @@ public class Fabrication
     public List<ItemStack> outputs;
     public List<ItemStack> inputs;
     public Consumer<Fabrication> modifier;
+    public ResourceLocation recipeId;
 
-    public Fabrication(List<ItemStack> outputs, List<ItemStack> inputs)
+    public Fabrication(List<ItemStack> outputs, List<ItemStack> inputs, ResourceLocation id)
     {
+        this.recipeId = id;
         this.outputs = outputs;
         this.inputs = inputs;
         this.modifier = null;
     }
 
-    public Fabrication(List<ItemStack> outputs, List<ItemStack> inputs, Consumer<Fabrication> modifier)
+    public Fabrication(List<ItemStack> outputs, List<ItemStack> inputs, Consumer<Fabrication> modifier, ResourceLocation id)
     {
+        this.recipeId = id;
         this.outputs = outputs;
         this.inputs = inputs;
         this.modifier = modifier;
